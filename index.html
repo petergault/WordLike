@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordLike - Vocabulary Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: #1abc9c;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .player-name {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        /* Game Info Bar */
+        .game-info {
+            background-color: #c8c8c8;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+        }
+
+        .word-section {
+            flex: 1;
+            text-align: center;
+        }
+
+        .current-word {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .definition {
+            font-size: 20px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .round-info {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            white-space: nowrap;
+            position: absolute;
+            left: 30px;
+        }
+
+        .timer-section {
+            text-align: right;
+            position: absolute;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .timer {
+            font-size: 42px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer.warning {
+            color: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .points {
+            font-size: 24px;
+            font-weight: 500;
+            color: #2c3e50;
+            margin-top: 5px;
+        }
+
+        /* Countdown overlay for the main game area */
+        .countdown-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
+            font-weight: bold;
+            color: #2c3e50;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: countdownPulse 1s ease;
+        }
+
+        @keyframes countdownPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .points-popup {
+            position: fixed;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 72px;
+            font-weight: bold;
+            color: #28a745;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            pointer-events: none;
+            opacity: 0;
+            animation: pointsFade 1s ease forwards;
+        }
+
+        @keyframes pointsFade {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            20% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            80% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        /* Main Content Area */
+        .main-container {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .start-screen h1 {
+            font-size: 56px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .start-screen h2 {
+            font-size: 36px;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .start-screen p {
+            font-size: 22px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .start-button {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(26, 188, 156, 0.3);
+            margin-top: 20px;
+        }
+
+        .start-button:hover {
+            background-color: #16a085;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 25px rgba(26, 188, 156, 0.4);
+        }
+
+        /* Game Screen */
+        .game-screen {
+            display: none;
+        }
+
+        .synonyms-grid {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .synonyms-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 20px;
+        }
+
+        .synonym-cell {
+            border: 2px solid #e0e0e0;
+            padding: 25px 20px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: 500;
+            min-height: 80px;
+            background: white;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 250px;
+            border-radius: 10px;
+            color: #2c3e50;
+        }
+
+        .synonym-cell.revealed {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            text-decoration: line-through;
+            animation: none; /* Remove any animation */
+        }
+
+        .synonym-cell .points-earned {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: #28a745;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .word-input {
+            width: 100%;
+            max-width: 700px;
+            padding: 20px 25px;
+            font-size: 28px;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            transition: border-color 0.3s ease;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-color: #1abc9c;
+            box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
+        }
+
+        .check-button {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 22px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(26, 188, 156, 0.3);
+        }
+
+        .check-button:hover:not(:disabled) {
+            background-color: #16a085;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(26, 188, 156, 0.4);
+        }
+
+        .check-button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .hint-text {
+            color: #95a5a6;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+
+        /* Score Screen */
+        .score-screen {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .score-summary {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .score-summary h2 {
+            font-size: 42px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        .goal-result {
+            font-size: 26px;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .goal-result.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .goal-result.failure {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .words-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .words-table h3 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .words-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .words-table th,
+        .words-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 18px;
+        }
+
+        .words-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .high-scores {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .high-scores h3 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .high-scores table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .high-scores th,
+        .high-scores td {
+            padding: 12px;
+            text-align: left;
+            font-size: 18px;
+        }
+
+        .high-scores th {
+            color: #495057;
+            font-weight: bold;
+        }
+
+        .high-scores tr.current-score {
+            background: #fff3cd;
+            font-weight: bold;
+        }
+
+        .continue-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 22px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .continue-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            Quill 🖊️
+        </div>
+        <div class="player-name" id="playerName">Player</div>
+    </div>
+
+    <!-- Game Info Bar -->
+    <div class="game-info hidden" id="gameInfo">
+        <div class="word-section">
+            <div class="current-word" id="currentWord">Loading...</div>
+            <div class="definition" id="definition">Loading definition...</div>
+        </div>
+        <div class="round-info" id="roundInfo">Round 1</div>
+        <div class="timer-section">
+            <div class="timer" id="timer">1:00</div>
+            <div class="points" id="points">0 Points</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <h1>WordLike</h1>
+            <h2 id="currentRoundDisplay">Round 1</h2>
+            <p>Test your vocabulary skills! Guess as many synonyms as you can before time runs out.</p>
+            <p>Your goal: Get at least <strong>5 words</strong> correct per round.</p>
+            <button class="start-button" onclick="startGame()">Start Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="synonyms-grid">
+                <table class="synonyms-table" id="synonymsTable">
+                    <tbody id="synonymsBody">
+                        <!-- Synonym cells will be generated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="input-section">
+                <input type="text" class="word-input" id="wordInput" placeholder="Enter a synonym">
+                <button class="check-button" id="checkButton" onclick="checkWord()">Check Word</button>
+                <div class="hint-text">Press enter to clear</div>
+            </div>
+        </div>
+
+        <!-- Score Screen -->
+        <div class="score-screen" id="scoreScreen">
+            <div class="score-summary">
+                <h2>Round Complete!</h2>
+                <div class="goal-result" id="goalResult">
+                    <!-- Goal achievement message -->
+                </div>
+                <div id="roundScore">
+                    <!-- Round score will be displayed here -->
+                </div>
+            </div>
+
+            <div class="words-table" id="wordsTable">
+                <h3>Words Guessed This Round</h3>
+                <table id="roundWordsTable">
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roundWordsBody">
+                        <!-- Words will be listed here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="high-scores">
+                <h3>Top 10 High Scores</h3>
+                <table id="highScoresTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Score</th>
+                            <th>Round</th>
+                        </tr>
+                    </thead>
+                    <tbody id="highScoresBody">
+                        <!-- High scores will be listed here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button class="continue-button" id="continueButton" onclick="nextRound()">Next Round</button>
+        </div>
+    </div>
+
+    <script>
+        // Embedded game data - Complete list of 120 words
+        const embeddedGameData = [
+            { level: 1, grade: "Elementary", word: "Amazing", definition: "very surprising or impressive; causing great wonder", synonyms: ["incredible", "astonishing", "astounding", "wonderful", "marvelous", "remarkable", "phenomenal", "extraordinary", "spectacular", "fantastic"] },
+            { level: 2, grade: "Elementary", word: "Anger", definition: "a strong feeling of being upset or annoyed", synonyms: ["rage", "fury", "ire", "wrath", "annoyance", "resentment", "indignation", "exasperation", "irritation", "outrage"] },
+            { level: 3, grade: "Elementary", word: "Angry", definition: "feeling or showing strong annoyance or hostility", synonyms: ["mad", "furious", "irate", "livid", "enraged", "annoyed", "upset", "cross", "indignant", "irritated"] },
+            { level: 4, grade: "Elementary", word: "Answer", definition: "a reply to a question or solution to a problem", synonyms: ["reply", "response", "solution", "explanation", "retort", "rejoinder", "comeback", "reaction", "feedback", "acknowledgment"] },
+            { level: 5, grade: "Elementary", word: "Ask", definition: "to request information or an answer", synonyms: ["inquire", "question", "query", "request", "demand", "seek", "solicit", "petition", "appeal", "implore"] },
+            { level: 6, grade: "Elementary", word: "Beautiful", definition: "pleasing to look at; attractive", synonyms: ["pretty", "lovely", "gorgeous", "stunning", "attractive", "handsome", "elegant", "charming", "graceful", "exquisite"] },
+            { level: 7, grade: "Elementary", word: "Begin", definition: "to start or commence", synonyms: ["start", "commence", "initiate", "launch", "originate", "embark", "undertake", "inaugurate", "kick-off", "open"] },
+            { level: 8, grade: "Elementary", word: "Big", definition: "of considerable size or extent", synonyms: ["large", "huge", "enormous", "gigantic", "immense", "vast", "massive", "colossal", "tremendous", "substantial"] },
+            { level: 9, grade: "Elementary", word: "Brave", definition: "showing courage; ready to face danger", synonyms: ["courageous", "fearless", "valiant", "bold", "heroic", "daring", "intrepid", "gallant", "audacious", "dauntless"] },
+            { level: 10, grade: "Elementary", word: "Break", definition: "to separate into pieces; to fracture", synonyms: ["shatter", "smash", "crack", "fracture", "snap", "split", "rupture", "fragment", "splinter", "burst"] },
+            { level: 11, grade: "Elementary", word: "Bright", definition: "giving out much light; intelligent", synonyms: ["brilliant", "radiant", "luminous", "shining", "gleaming", "vivid", "dazzling", "glowing", "sparkling", "intelligent"] },
+            { level: 12, grade: "Elementary", word: "Calm", definition: "peaceful and quiet; without worry", synonyms: ["peaceful", "serene", "tranquil", "placid", "composed", "relaxed", "unruffled", "still", "quiet", "undisturbed"] },
+            { level: 13, grade: "Elementary", word: "Cold", definition: "having a low temperature", synonyms: ["chilly", "freezing", "icy", "frigid", "frosty", "arctic", "wintry", "cool", "nippy", "bitter"] },
+            { level: 14, grade: "Elementary", word: "Come", definition: "to move toward or arrive at a place", synonyms: ["arrive", "approach", "reach", "enter", "appear", "advance", "proceed", "near", "show-up", "turn-up"] },
+            { level: 15, grade: "Elementary", word: "Cry", definition: "to shed tears; to shout", synonyms: ["weep", "sob", "wail", "whimper", "bawl", "howl", "blubber", "snivel", "whine", "mourn"] },
+            { level: 16, grade: "Elementary", word: "Dark", definition: "with little or no light", synonyms: ["dim", "shadowy", "gloomy", "murky", "dusky", "shady", "obscure", "black", "unlit", "somber"] },
+            { level: 17, grade: "Elementary", word: "Difficult", definition: "hard to do or understand", synonyms: ["hard", "challenging", "tough", "demanding", "arduous", "complex", "complicated", "troublesome", "laborious", "strenuous"] },
+            { level: 18, grade: "Elementary", word: "Dirty", definition: "covered with dirt; not clean", synonyms: ["filthy", "grimy", "grubby", "messy", "soiled", "muddy", "dusty", "unclean", "stained", "polluted"] },
+            { level: 19, grade: "Elementary", word: "Dry", definition: "free from moisture or liquid", synonyms: ["arid", "parched", "dehydrated", "desiccated", "withered", "barren", "waterless", "thirsty", "bone-dry", "rainless"] },
+            { level: 20, grade: "Elementary", word: "Easy", definition: "not difficult; simple", synonyms: ["simple", "effortless", "straightforward", "uncomplicated", "painless", "elementary", "basic", "facile", "manageable", "plain"] },
+            { level: 21, grade: "Elementary", word: "End", definition: "the final part; to finish", synonyms: ["finish", "conclusion", "termination", "finale", "close", "completion", "cessation", "closure", "culmination", "expiration"] },
+            { level: 22, grade: "Elementary", word: "Explain", definition: "to make clear or easy to understand", synonyms: ["clarify", "describe", "illustrate", "interpret", "elucidate", "expound", "define", "demonstrate", "elaborate", "spell-out"] },
+            { level: 23, grade: "Elementary", word: "Fall", definition: "to drop down; autumn season", synonyms: ["drop", "tumble", "plunge", "descend", "topple", "collapse", "plummet", "decline", "stumble", "slip"] },
+            { level: 24, grade: "Elementary", word: "Famous", definition: "known by many people", synonyms: ["renowned", "celebrated", "well-known", "prominent", "notable", "distinguished", "eminent", "illustrious", "acclaimed", "legendary"] },
+            { level: 25, grade: "Elementary", word: "Fast", definition: "moving quickly; rapid", synonyms: ["quick", "rapid", "speedy", "swift", "hasty", "brisk", "prompt", "fleet", "hurried", "expeditious"] },
+            { level: 26, grade: "Elementary", word: "Fat", definition: "having excess flesh; thick", synonyms: ["obese", "overweight", "plump", "chubby", "stout", "heavy", "corpulent", "portly", "rotund", "pudgy"] },
+            { level: 27, grade: "Elementary", word: "Finish", definition: "to complete; to end", synonyms: ["complete", "conclude", "end", "accomplish", "achieve", "finalize", "wrap-up", "terminate", "close", "fulfill"] },
+            { level: 28, grade: "Elementary", word: "Funny", definition: "causing laughter; amusing", synonyms: ["hilarious", "amusing", "comical", "humorous", "witty", "entertaining", "laughable", "ridiculous", "silly", "absurd"] },
+            { level: 29, grade: "Elementary", word: "Get", definition: "to obtain or receive", synonyms: ["obtain", "acquire", "receive", "gain", "secure", "procure", "fetch", "attain", "earn", "collect"] },
+            { level: 30, grade: "Elementary", word: "Give", definition: "to transfer to someone; to provide", synonyms: ["provide", "offer", "donate", "present", "grant", "bestow", "contribute", "deliver", "supply", "furnish"] },
+            { level: 31, grade: "Elementary", word: "Go", definition: "to move or travel", synonyms: ["leave", "depart", "travel", "proceed", "move", "advance", "journey", "walk", "exit", "retreat"] },
+            { level: 32, grade: "Elementary", word: "Good", definition: "of high quality; morally right", synonyms: ["excellent", "fine", "great", "superior", "wonderful", "splendid", "superb", "outstanding", "exceptional", "admirable"] },
+            { level: 33, grade: "Elementary", word: "Happy", definition: "feeling or showing pleasure", synonyms: ["joyful", "cheerful", "delighted", "pleased", "content", "glad", "elated", "jubilant", "merry", "blissful"] },
+            { level: 34, grade: "Elementary", word: "Hard", definition: "solid and firm; difficult", synonyms: ["difficult", "tough", "challenging", "solid", "firm", "rigid", "stiff", "dense", "compact", "arduous"] },
+            { level: 35, grade: "Elementary", word: "Hate", definition: "to dislike intensely", synonyms: ["despise", "loathe", "detest", "abhor", "dislike", "resent", "deplore", "abominate", "execrate", "scorn"] },
+            { level: 36, grade: "Elementary", word: "Help", definition: "to assist or aid", synonyms: ["assist", "aid", "support", "serve", "facilitate", "benefit", "contribute", "cooperate", "collaborate", "succor"] },
+            { level: 37, grade: "Elementary", word: "Hide", definition: "to conceal from sight", synonyms: ["conceal", "cover", "obscure", "mask", "camouflage", "disguise", "cloak", "veil", "shroud", "bury"] },
+            { level: 38, grade: "Elementary", word: "High", definition: "extending far upward; elevated", synonyms: ["tall", "elevated", "lofty", "towering", "soaring", "raised", "uplifted", "steep", "aerial", "alpine"] },
+            { level: 39, grade: "Elementary", word: "Hot", definition: "having a high temperature", synonyms: ["warm", "heated", "burning", "scorching", "blazing", "boiling", "sizzling", "sweltering", "torrid", "fiery"] },
+            { level: 40, grade: "Elementary", word: "Huge", definition: "extremely large", synonyms: ["enormous", "gigantic", "massive", "colossal", "immense", "vast", "tremendous", "mammoth", "titanic", "monumental"] },
+            { level: 41, grade: "Middle School", word: "Idea", definition: "a thought or suggestion", synonyms: ["thought", "concept", "notion", "theory", "plan", "proposal", "suggestion", "impression", "opinion", "belief"] },
+            { level: 42, grade: "Middle School", word: "Important", definition: "of great significance", synonyms: ["significant", "crucial", "vital", "essential", "critical", "major", "key", "principal", "fundamental", "paramount"] },
+            { level: 43, grade: "Middle School", word: "Interesting", definition: "arousing curiosity or interest", synonyms: ["fascinating", "engaging", "intriguing", "captivating", "absorbing", "compelling", "gripping", "stimulating", "exciting", "appealing"] },
+            { level: 44, grade: "Middle School", word: "Keep", definition: "to retain possession of", synonyms: ["retain", "hold", "maintain", "preserve", "save", "store", "reserve", "conserve", "sustain", "possess"] },
+            { level: 45, grade: "Middle School", word: "Know", definition: "to be aware of information", synonyms: ["understand", "comprehend", "realize", "recognize", "perceive", "grasp", "fathom", "discern", "appreciate", "cognize"] },
+            { level: 46, grade: "Middle School", word: "Large", definition: "of considerable size", synonyms: ["big", "huge", "enormous", "vast", "immense", "substantial", "sizable", "extensive", "spacious", "grand"] },
+            { level: 47, grade: "Middle School", word: "Last", definition: "final; to continue", synonyms: ["final", "ultimate", "concluding", "terminal", "ending", "closing", "endure", "persist", "continue", "remain"] },
+            { level: 48, grade: "Middle School", word: "Late", definition: "after the expected time", synonyms: ["delayed", "tardy", "overdue", "belated", "behind", "slow", "unpunctual", "delinquent", "postponed", "behindhand"] },
+            { level: 49, grade: "Middle School", word: "Laugh", definition: "to express mirth with sound", synonyms: ["giggle", "chuckle", "chortle", "guffaw", "cackle", "snicker", "titter", "roar", "howl", "snort"] },
+            { level: 50, grade: "Middle School", word: "Learn", definition: "to gain knowledge or skill", synonyms: ["study", "understand", "master", "absorb", "grasp", "comprehend", "discover", "memorize", "acquire", "assimilate"] },
+            { level: 51, grade: "Middle School", word: "Like", definition: "to find pleasant; similar to", synonyms: ["enjoy", "appreciate", "favor", "admire", "fancy", "prefer", "relish", "cherish", "adore", "love"] },
+            { level: 52, grade: "Middle School", word: "Listen", definition: "to pay attention to sound", synonyms: ["hear", "attend", "heed", "overhear", "eavesdrop", "monitor", "observe", "concentrate", "tune-in", "harken"] },
+            { level: 53, grade: "Middle School", word: "Little", definition: "small in size or amount", synonyms: ["small", "tiny", "miniature", "minute", "petite", "slight", "minor", "trivial", "diminutive", "microscopic"] },
+            { level: 54, grade: "Middle School", word: "Long", definition: "extending for a great distance", synonyms: ["lengthy", "extended", "prolonged", "elongated", "stretched", "extensive", "protracted", "sustained", "lingering", "enduring"] },
+            { level: 55, grade: "Middle School", word: "Look", definition: "to direct one's gaze", synonyms: ["see", "watch", "observe", "view", "gaze", "stare", "glance", "peek", "peer", "examine"] },
+            { level: 56, grade: "Middle School", word: "Love", definition: "intense affection", synonyms: ["adore", "cherish", "treasure", "worship", "admire", "fancy", "care-for", "dote-on", "prize", "idolize"] },
+            { level: 57, grade: "Middle School", word: "Make", definition: "to create or construct", synonyms: ["create", "build", "construct", "produce", "form", "manufacture", "generate", "craft", "assemble", "fabricate"] },
+            { level: 58, grade: "Middle School", word: "Mean", definition: "unkind; to signify", synonyms: ["cruel", "nasty", "unkind", "malicious", "spiteful", "vicious", "harsh", "signify", "indicate", "denote"] },
+            { level: 59, grade: "Middle School", word: "Move", definition: "to change position", synonyms: ["shift", "relocate", "transfer", "transport", "migrate", "travel", "proceed", "advance", "budge", "stir"] },
+            { level: 60, grade: "Middle School", word: "Need", definition: "to require; necessity", synonyms: ["require", "want", "demand", "necessitate", "lack", "desire", "crave", "essential", "must", "prerequisite"] },
+            { level: 61, grade: "Middle School", word: "New", definition: "recently made or obtained", synonyms: ["fresh", "recent", "modern", "novel", "original", "latest", "current", "contemporary", "innovative", "pristine"] },
+            { level: 62, grade: "Middle School", word: "Nice", definition: "pleasant or satisfactory", synonyms: ["pleasant", "agreeable", "delightful", "enjoyable", "lovely", "charming", "gracious", "kind", "friendly", "amiable"] },
+            { level: 63, grade: "Middle School", word: "Old", definition: "having lived or existed for many years", synonyms: ["ancient", "aged", "elderly", "antique", "vintage", "mature", "senior", "archaic", "obsolete", "outdated"] },
+            { level: 64, grade: "Middle School", word: "Open", definition: "not closed or blocked", synonyms: ["unlock", "unseal", "unfasten", "uncover", "expose", "reveal", "accessible", "available", "clear", "free"] },
+            { level: 65, grade: "Middle School", word: "Part", definition: "a piece or segment", synonyms: ["piece", "portion", "section", "segment", "fragment", "component", "element", "division", "share", "fraction"] },
+            { level: 66, grade: "Middle School", word: "Place", definition: "a particular position or location", synonyms: ["location", "position", "spot", "site", "area", "region", "venue", "setting", "locale", "point"] },
+            { level: 67, grade: "Middle School", word: "Play", definition: "to engage in activity for enjoyment", synonyms: ["frolic", "romp", "gambol", "sport", "recreate", "amuse", "entertain", "cavort", "perform", "act"] },
+            { level: 68, grade: "Middle School", word: "Present", definition: "existing now; a gift", synonyms: ["current", "existing", "contemporary", "gift", "offering", "donation", "contribution", "award", "grant", "endowment"] },
+            { level: 69, grade: "Middle School", word: "Pretty", definition: "attractive in a delicate way", synonyms: ["beautiful", "lovely", "attractive", "cute", "charming", "appealing", "fetching", "handsome", "fair", "graceful"] },
+            { level: 70, grade: "Middle School", word: "Put", definition: "to place in a position", synonyms: ["place", "position", "set", "lay", "deposit", "locate", "situate", "install", "establish", "arrange"] },
+            { level: 71, grade: "Middle School", word: "Quiet", definition: "making little noise", synonyms: ["silent", "hushed", "muted", "noiseless", "soundless", "still", "peaceful", "tranquil", "subdued", "calm"] },
+            { level: 72, grade: "Middle School", word: "Real", definition: "actually existing; genuine", synonyms: ["genuine", "authentic", "actual", "true", "legitimate", "valid", "factual", "concrete", "tangible", "substantial"] },
+            { level: 73, grade: "Middle School", word: "Rich", definition: "having wealth; abundant", synonyms: ["wealthy", "affluent", "prosperous", "opulent", "well-off", "loaded", "flush", "abundant", "lavish", "luxurious"] },
+            { level: 74, grade: "Middle School", word: "Right", definition: "correct; opposite of left", synonyms: ["correct", "accurate", "true", "proper", "exact", "precise", "appropriate", "suitable", "fitting", "just"] },
+            { level: 75, grade: "Middle School", word: "Run", definition: "to move rapidly on foot", synonyms: ["sprint", "dash", "race", "rush", "jog", "bolt", "gallop", "hurry", "scurry", "flee"] },
+            { level: 76, grade: "Middle School", word: "Sad", definition: "feeling sorrow or unhappiness", synonyms: ["unhappy", "sorrowful", "miserable", "dejected", "depressed", "melancholy", "gloomy", "mournful", "despondent", "downcast"] },
+            { level: 77, grade: "Middle School", word: "Safe", definition: "protected from danger", synonyms: ["secure", "protected", "sheltered", "guarded", "shielded", "defended", "immune", "harmless", "risk-free", "sound"] },
+            { level: 78, grade: "Middle School", word: "Same", definition: "identical; not different", synonyms: ["identical", "equal", "alike", "similar", "matching", "equivalent", "comparable", "uniform", "duplicate", "twin"] },
+            { level: 79, grade: "Middle School", word: "Say", definition: "to express in words", synonyms: ["speak", "tell", "state", "declare", "express", "utter", "voice", "articulate", "pronounce", "announce"] },
+            { level: 80, grade: "Middle School", word: "Scared", definition: "feeling fear", synonyms: ["afraid", "frightened", "terrified", "fearful", "alarmed", "panicked", "petrified", "anxious", "nervous", "horrified"] },
+            { level: 81, grade: "High School", word: "See", definition: "to perceive with the eyes", synonyms: ["observe", "view", "watch", "perceive", "notice", "spot", "glimpse", "witness", "behold", "discern"] },
+            { level: 82, grade: "High School", word: "Show", definition: "to display or demonstrate", synonyms: ["display", "exhibit", "present", "demonstrate", "reveal", "expose", "illustrate", "manifest", "indicate", "prove"] },
+            { level: 83, grade: "High School", word: "Slow", definition: "moving without speed", synonyms: ["unhurried", "leisurely", "gradual", "sluggish", "plodding", "lagging", "dawdling", "tardy", "languid", "deliberate"] },
+            { level: 84, grade: "High School", word: "Small", definition: "little in size", synonyms: ["tiny", "little", "miniature", "minute", "compact", "petite", "diminutive", "slight", "minor", "microscopic"] },
+            { level: 85, grade: "High School", word: "Smart", definition: "having intelligence", synonyms: ["intelligent", "clever", "bright", "brilliant", "sharp", "quick", "astute", "wise", "knowledgeable", "genius"] },
+            { level: 86, grade: "High School", word: "Smooth", definition: "having an even surface", synonyms: ["even", "flat", "level", "sleek", "polished", "glossy", "silky", "soft", "flowing", "seamless"] },
+            { level: 87, grade: "High School", word: "Soft", definition: "easy to mold or cut", synonyms: ["tender", "pliable", "flexible", "supple", "gentle", "mild", "delicate", "smooth", "cushioned", "yielding"] },
+            { level: 88, grade: "High School", word: "Start", definition: "to begin", synonyms: ["begin", "commence", "initiate", "launch", "originate", "inaugurate", "embark", "trigger", "activate", "establish"] },
+            { level: 89, grade: "High School", word: "Stop", definition: "to cease movement", synonyms: ["halt", "cease", "end", "quit", "discontinue", "pause", "terminate", "arrest", "suspend", "conclude"] },
+            { level: 90, grade: "High School", word: "Strange", definition: "unusual or surprising", synonyms: ["odd", "peculiar", "weird", "bizarre", "unusual", "curious", "abnormal", "eccentric", "mysterious", "uncanny"] },
+            { level: 91, grade: "High School", word: "Strong", definition: "having great power", synonyms: ["powerful", "mighty", "robust", "sturdy", "tough", "muscular", "forceful", "vigorous", "potent", "resilient"] },
+            { level: 92, grade: "High School", word: "Take", definition: "to get possession of", synonyms: ["grab", "seize", "grasp", "capture", "obtain", "acquire", "remove", "steal", "snatch", "collect"] },
+            { level: 93, grade: "High School", word: "Talk", definition: "to speak or converse", synonyms: ["speak", "chat", "converse", "discuss", "communicate", "dialogue", "gossip", "lecture", "articulate", "express"] },
+            { level: 94, grade: "High School", word: "Tell", definition: "to communicate information", synonyms: ["inform", "notify", "report", "relate", "narrate", "describe", "reveal", "disclose", "announce", "explain"] },
+            { level: 95, grade: "High School", word: "Think", definition: "to use one's mind", synonyms: ["ponder", "consider", "reflect", "contemplate", "reason", "deliberate", "meditate", "cogitate", "muse", "speculate"] },
+            { level: 96, grade: "High School", word: "Tired", definition: "needing rest", synonyms: ["exhausted", "weary", "fatigued", "drained", "worn-out", "sleepy", "drowsy", "spent", "beat", "bushed"] },
+            { level: 97, grade: "High School", word: "True", definition: "in accordance with fact", synonyms: ["accurate", "correct", "factual", "genuine", "authentic", "real", "valid", "actual", "precise", "exact"] },
+            { level: 98, grade: "High School", word: "Try", definition: "to make an attempt", synonyms: ["attempt", "endeavor", "strive", "effort", "seek", "aim", "venture", "undertake", "test", "experiment"] },
+            { level: 99, grade: "High School", word: "Ugly", definition: "unpleasant to look at", synonyms: ["unattractive", "unsightly", "hideous", "repulsive", "grotesque", "homely", "plain", "gruesome", "ghastly", "revolting"] },
+            { level: 100, grade: "High School", word: "Understand", definition: "to comprehend meaning", synonyms: ["comprehend", "grasp", "perceive", "realize", "appreciate", "fathom", "discern", "interpret", "recognize", "follow"] },
+            { level: 101, grade: "High School", word: "Use", definition: "to employ for a purpose", synonyms: ["utilize", "employ", "apply", "operate", "wield", "exercise", "exploit", "handle", "manipulate", "practice"] },
+            { level: 102, grade: "High School", word: "Wait", definition: "to stay in expectation", synonyms: ["pause", "delay", "linger", "remain", "stay", "anticipate", "expect", "hold", "tarry", "loiter"] },
+            { level: 103, grade: "High School", word: "Walk", definition: "to move on foot", synonyms: ["stroll", "stride", "march", "amble", "saunter", "trek", "hike", "wander", "pace", "trudge"] },
+            { level: 104, grade: "High School", word: "Want", definition: "to desire or wish for", synonyms: ["desire", "wish", "crave", "need", "yearn", "long-for", "covet", "fancy", "hanker", "aspire"] },
+            { level: 105, grade: "High School", word: "Warm", definition: "having moderate heat", synonyms: ["heated", "tepid", "lukewarm", "toasty", "cozy", "mild", "temperate", "balmy", "comfortable", "pleasant"] },
+            { level: 106, grade: "High School", word: "Weak", definition: "lacking strength", synonyms: ["feeble", "frail", "fragile", "delicate", "powerless", "faint", "infirm", "flimsy", "vulnerable", "debilitated"] },
+            { level: 107, grade: "High School", word: "Wet", definition: "covered with liquid", synonyms: ["damp", "moist", "soaked", "drenched", "saturated", "soggy", "waterlogged", "humid", "dripping", "sodden"] },
+            { level: 108, grade: "High School", word: "Win", definition: "to achieve victory", synonyms: ["triumph", "prevail", "succeed", "conquer", "overcome", "defeat", "vanquish", "beat", "dominate", "excel"] },
+            { level: 109, grade: "High School", word: "Wise", definition: "having knowledge and good judgment", synonyms: ["intelligent", "sage", "prudent", "sensible", "astute", "clever", "knowledgeable", "insightful", "perceptive", "shrewd"] },
+            { level: 110, grade: "High School", word: "Work", definition: "to perform labor or duties", synonyms: ["labor", "toil", "operate", "function", "perform", "strive", "endeavor", "produce", "accomplish", "achieve"] },
+            { level: 111, grade: "High School", word: "Worry", definition: "to feel anxious", synonyms: ["fret", "stress", "agonize", "anxiety", "concern", "trouble", "distress", "bother", "fear", "unease"] },
+            { level: 112, grade: "High School", word: "Write", definition: "to mark letters or words", synonyms: ["compose", "pen", "draft", "scribble", "inscribe", "record", "author", "transcribe", "jot", "document"] },
+            { level: 113, grade: "High School", word: "Wrong", definition: "not correct or true", synonyms: ["incorrect", "mistaken", "false", "inaccurate", "erroneous", "faulty", "flawed", "improper", "unsuitable", "inappropriate"] },
+            { level: 114, grade: "High School", word: "Young", definition: "having lived for a short time", synonyms: ["youthful", "juvenile", "adolescent", "immature", "fresh", "junior", "new", "childish", "inexperienced", "green"] },
+            { level: 115, grade: "High School", word: "Abolish", definition: "to formally put an end to", synonyms: ["eliminate", "eradicate", "terminate", "cancel", "annul", "repeal", "revoke", "nullify", "invalidate", "dissolve"] },
+            { level: 116, grade: "High School", word: "Abundant", definition: "existing in large quantities", synonyms: ["plentiful", "ample", "copious", "profuse", "generous", "lavish", "bountiful", "rich", "prolific", "extensive"] },
+            { level: 117, grade: "High School", word: "Accomplish", definition: "to complete successfully", synonyms: ["achieve", "complete", "fulfill", "realize", "attain", "execute", "perform", "finish", "succeed", "consummate"] },
+            { level: 118, grade: "High School", word: "Accurate", definition: "correct in all details", synonyms: ["precise", "exact", "correct", "right", "true", "perfect", "faithful", "strict", "meticulous", "flawless"] },
+            { level: 119, grade: "High School", word: "Achieve", definition: "to successfully reach a goal", synonyms: ["accomplish", "attain", "reach", "realize", "fulfill", "complete", "gain", "obtain", "secure", "succeed"] },
+            { level: 120, grade: "High School", word: "Active", definition: "engaged in action; energetic", synonyms: ["energetic", "dynamic", "busy", "lively", "vigorous", "animated", "spirited", "bustling", "vibrant", "agile"] }
+        ];
+
+        // Game state variables
+        let gameData = [...embeddedGameData];
+        let currentRound = 1;
+        let totalRounds = 120;
+        let currentWordData = null;
+        let currentSynonyms = [];
+        let timer = null;
+        let secondsRemaining = 60;
+        let totalPoints = 0;
+        let currentRoundCorrectWords = [];
+        let highScores = [];
+        let inactivityCounter = 0;
+        let lastActivity = Date.now();
+        let randomizedWordOrder = [];
+
+        // Initialize game
+        function initGame() {
+            // Create randomized order
+            randomizeWordOrder();
+
+            // Load high scores from localStorage
+            const savedScores = localStorage.getItem('wordlikeHighScores');
+            if (savedScores) {
+                try {
+                    highScores = JSON.parse(savedScores);
+                } catch (e) {
+                    highScores = [];
+                }
+            }
+
+            // Set player name
+            const animals = ['King Penguin', 'Lion', 'Eagle', 'Dolphin', 'Tiger', 'Wolf', 'Fox', 'Bear', 'Hawk', 'Shark'];
+            const playerName = animals[Math.floor(Math.random() * animals.length)] + ' (You)';
+            document.getElementById('playerName').textContent = playerName;
+
+            document.getElementById('currentRoundDisplay').textContent = `Round ${currentRound}`;
+            console.log(`Game initialized with ${gameData.length} words`);
+        }
+
+        // Randomize word order
+        function randomizeWordOrder() {
+            randomizedWordOrder = [];
+            for (let i = 0; i < gameData.length; i++) {
+                randomizedWordOrder.push(i);
+            }
+            // Fisher-Yates shuffle
+            for (let i = randomizedWordOrder.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [randomizedWordOrder[i], randomizedWordOrder[j]] = [randomizedWordOrder[j], randomizedWordOrder[i]];
+            }
+        }
+
+        // Start game - Global function for onclick
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('gameInfo').classList.remove('hidden');
+
+            startRound();
+        }
+
+        // Prepare synonyms
+        function prepareCurrentSynonyms() {
+            // Reset the synonyms array
+            currentSynonyms = [];
+
+            // Take all synonyms from the current word data
+            for (let i = 0; i < currentWordData.synonyms.length && i < 12; i++) {
+                currentSynonyms.push({
+                    word: currentWordData.synonyms[i],
+                    dummy: currentWordData.synonyms[i][0].toUpperCase() + '.' + '.'.repeat(currentWordData.synonyms[i].length - 1),
+                    toSwap: 1,
+                    revealed: false,
+                    points: 0
+                });
+            }
+        }
+
+        // Start a round
+        function startRound() {
+            // Get word data for current round
+            const wordIndex = randomizedWordOrder[currentRound - 1];
+            currentWordData = gameData[wordIndex];
+
+            // Reset round state
+            currentRoundCorrectWords = [];
+            secondsRemaining = 60;
+            inactivityCounter = 0;
+            lastActivity = Date.now();
+
+            // Prepare synonyms - now handles 12 synonyms
+            prepareCurrentSynonyms();
+
+            // Update UI
+            document.getElementById('currentWord').textContent = currentWordData.word;
+            document.getElementById('definition').textContent = currentWordData.definition;
+            document.getElementById('roundInfo').textContent = `Round ${currentRound}`;
+            document.getElementById('points').textContent = `${totalPoints} Points`;
+            document.getElementById('wordInput').placeholder = `Synonym for ${currentWordData.word}`;
+            document.getElementById('wordInput').value = '';
+            document.getElementById('wordInput').disabled = false;
+            document.getElementById('checkButton').disabled = false;
+
+            // Create synonym grid
+            createSynonymGrid();
+
+            // Start countdown
+            countdown();
+        }
+
+        // Create synonym grid
+        function createSynonymGrid() {
+            const tbody = document.getElementById('synonymsBody');
+            tbody.innerHTML = '';
+
+            // Create 3 rows with 4 cells each (total of 12)
+            let cellIndex = 0;
+            for (let row = 0; row < 3; row++) {
+                const tr = document.createElement('tr');
+                for (let col = 0; col < 4; col++) {
+                    const td = document.createElement('td');
+                    td.className = 'synonym-cell';
+
+                    if (cellIndex < currentSynonyms.length) {
+                        td.id = `synonym-${cellIndex}`;
+                        td.textContent = currentSynonyms[cellIndex].dummy;
+                    } else {
+                        // Empty cell for padding if less than 12 synonyms
+                        td.style.border = 'none';
+                        td.style.background = 'transparent';
+                        td.textContent = '';
+                    }
+                    tr.appendChild(td);
+                    cellIndex++;
+                }
+                tbody.appendChild(tr);
+            }
+        }
+
+        // Countdown before round starts
+        function countdown() {
+            let count = 3;
+            document.getElementById('wordInput').disabled = true;
+            document.getElementById('checkButton').disabled = true;
+
+            const showCountdown = (num) => {
+                // Remove any existing countdown
+                const existing = document.querySelector('.countdown-overlay');
+                if (existing) existing.remove();
+
+                if (num > 0) {
+                    const countDiv = document.createElement('div');
+                    countDiv.className = 'countdown-overlay';
+                    countDiv.textContent = num;
+                    document.body.appendChild(countDiv);
+
+                    // Remove after animation
+                    setTimeout(() => {
+                        if (countDiv.parentNode) {
+                            countDiv.remove();
+                        }
+                    }, 900);
+                } else if (num === 0) {
+                    const goDiv = document.createElement('div');
+                    goDiv.className = 'countdown-overlay';
+                    goDiv.textContent = 'Go!';
+                    goDiv.style.color = '#28a745';
+                    goDiv.style.fontSize = '80px';
+                    document.body.appendChild(goDiv);
+
+                    setTimeout(() => {
+                        if (goDiv.parentNode) {
+                            goDiv.remove();
+                        }
+                    }, 900);
+                }
+            };
+
+            showCountdown(count);
+
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    showCountdown(count);
+                } else if (count === 0) {
+                    showCountdown(0);
+                } else {
+                    clearInterval(countInterval);
+                    document.getElementById('wordInput').disabled = false;
+                    document.getElementById('checkButton').disabled = false;
+                    document.getElementById('wordInput').focus();
+                    startTimer();
+                }
+            }, 1000);
+        }
+
+        // Start timer
+        function startTimer() {
+            updateTimerDisplay();
+            timer = setInterval(() => {
+                secondsRemaining--;
+                updateTimerDisplay();
+
+                // Check for inactivity
+                const now = Date.now();
+                if (now - lastActivity > 1000) {
+                    inactivityCounter++;
+                    if (inactivityCounter >= 1) {
+                        revealRandomLetter();
+                        inactivityCounter = 0;
+                    }
+                }
+
+                // Check if time's up or all words guessed
+                if (secondsRemaining <= 0 || checkAllWordsGuessed()) {
+                    endRound();
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(secondsRemaining / 60);
+            const seconds = secondsRemaining % 60;
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (secondsRemaining <= 10) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
+
+        // Reveal a random letter
+        function revealRandomLetter() {
+            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length - 1);
+            if (unrevealed.length === 0) return;
+
+            const synonym = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+            const index = currentSynonyms.indexOf(synonym);
+
+            // Reveal next letter
+            let dummy = synonym.word.substring(0, synonym.toSwap + 1);
+            dummy += '.'.repeat(synonym.word.length - synonym.toSwap - 1);
+            synonym.dummy = dummy;
+            synonym.toSwap++;
+
+            // Update display
+            const cell = document.getElementById(`synonym-${index}`);
+            if (cell) {
+                cell.textContent = synonym.dummy;
+            }
+        }
+
+        // Check word - Global function for onclick
+        function checkWord() {
+            const input = document.getElementById('wordInput').value.trim().toLowerCase();
+            if (!input) return;
+
+            // Normalize input (replace spaces with dashes)
+            const normalized = input.replace(/\s+/g, '-');
+
+            // Check against synonyms
+            let found = false;
+            for (let i = 0; i < currentSynonyms.length; i++) {
+                const synonym = currentSynonyms[i];
+                const synonymNormalized = synonym.word.toLowerCase().replace(/\s+/g, '-');
+
+                if (synonymNormalized === normalized && !synonym.revealed) {
+                    // Calculate points
+                    const pointsEarned = synonym.word.length - synonym.toSwap;
+                    synonym.points = pointsEarned;
+                    synonym.revealed = true;
+
+                    // Update total points
+                    totalPoints += pointsEarned;
+
+                    // Add to correct words list
+                    currentRoundCorrectWords.push({
+                        word: synonym.word,
+                        points: pointsEarned
+                    });
+
+                    // Update UI without any layout-shifting animations
+                    const cell = document.getElementById(`synonym-${i}`);
+                    if (cell) {
+                        cell.classList.add('revealed');
+                        cell.innerHTML = `${synonym.word} <span class="points-earned">+${pointsEarned}</span>`;
+                    }
+
+                    // Show points popup (fixed position, won't affect layout)
+                    const pointsDiv = document.createElement('div');
+                    pointsDiv.className = 'points-popup';
+                    pointsDiv.textContent = `+${pointsEarned}`;
+                    document.body.appendChild(pointsDiv);
+
+                    // Remove after animation
+                    setTimeout(() => {
+                        if (pointsDiv.parentNode) {
+                            pointsDiv.remove();
+                        }
+                    }, 1000);
+
+                    document.getElementById('points').textContent = `${totalPoints} Points`;
+
+                    found = true;
+                    lastActivity = Date.now();
+                    inactivityCounter = 0;
+                    break;
+                }
+            }
+
+            // Clear input
+            document.getElementById('wordInput').value = '';
+        }
+
+        // Check if all words are guessed
+        function checkAllWordsGuessed() {
+            return currentSynonyms.every(s => s.revealed);
+        }
+
+        // End round
+        function endRound() {
+            clearInterval(timer);
+
+            // Reveal all remaining words
+            currentSynonyms.forEach((synonym, index) => {
+                if (!synonym.revealed) {
+                    const cell = document.getElementById(`synonym-${index}`);
+                    if (cell) {
+                        cell.textContent = synonym.word;
+                        cell.style.color = '#95a5a6';
+                    }
+                }
+            });
+
+            // Calculate round score
+            const roundScore = currentRoundCorrectWords.reduce((sum, w) => sum + w.points, 0);
+
+            // Save current score to high scores if it's good
+            if (roundScore > 0) {
+                highScores.push({
+                    score: roundScore,
+                    round: currentRound,
+                    isCurrent: true
+                });
+
+                // Sort and keep top 10
+                highScores.sort((a, b) => b.score - a.score);
+                highScores = highScores.slice(0, 10);
+
+                // Save to localStorage
+                localStorage.setItem('wordlikeHighScores', JSON.stringify(highScores.map(s => ({ score: s.score, round: s.round }))));
+            }
+
+            // Show score screen
+            showScoreScreen();
+        }
+
+        // Show score screen
+        function showScoreScreen() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('scoreScreen').style.display = 'block';
+
+            // Check goal
+            const goalMet = currentRoundCorrectWords.length >= 5;
+            const goalResult = document.getElementById('goalResult');
+            if (goalMet) {
+                goalResult.className = 'goal-result success';
+                goalResult.innerHTML = `✓ Goal achieved! You got ${currentRoundCorrectWords.length} words correct!`;
+            } else {
+                goalResult.innerHTML = `✗ Goal not met. You got ${currentRoundCorrectWords.length} words correct (needed 5).`;
+            }
+
+            // Show round score
+            const roundScore = currentRoundCorrectWords.reduce((sum, w) => sum + w.points, 0);
+            document.getElementById('roundScore').innerHTML = `<h3>Round Score: ${roundScore} points</h3>`;
+
+            // Show words guessed
+            const tbody = document.getElementById('roundWordsBody');
+            tbody.innerHTML = '';
+            currentRoundCorrectWords.forEach(word => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${word.word}</td><td>+${word.points}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            // Show high scores
+            const highScoresBody = document.getElementById('highScoresBody');
+            highScoresBody.innerHTML = '';
+            highScores.forEach((score, index) => {
+                const tr = document.createElement('tr');
+                if (score.isCurrent) {
+                    tr.className = 'current-score';
+                }
+                tr.innerHTML = `<td>${index + 1}</td><td>${score.score}</td><td>Round ${score.round}</td>`;
+                highScoresBody.appendChild(tr);
+            });
+
+            // Clear current flag
+            highScores.forEach(s => delete s.isCurrent);
+
+            // Update button text
+            if (currentRound >= totalRounds) {
+                document.getElementById('continueButton').textContent = 'Start New Game';
+            } else {
+                document.getElementById('continueButton').textContent = 'Next Round';
+            }
+        }
+
+        // Next round - Global function for onclick
+        function nextRound() {
+            if (currentRound >= totalRounds) {
+                // Reset game
+                currentRound = 1;
+                totalPoints = 0;
+                randomizeWordOrder();
+            } else {
+                currentRound++;
+            }
+
+            document.getElementById('scoreScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+
+            startRound();
+        }
+
+        // Handle Enter key and initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initGame();
+
+            document.getElementById('wordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkWord();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
