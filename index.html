@@ -384,36 +384,6 @@
             color: #721c24;
         }
 
-        .words-table {
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
-        .words-table h3 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .words-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .words-table th,
-        .words-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 18px;
-        }
-
-        .words-table th {
-            background: #f8f9fa;
-            font-weight: bold;
-            color: #495057;
-        }
-
         .high-scores {
             background: #f8f9fa;
             padding: 25px;
@@ -573,21 +543,6 @@
                 <div id="roundScore">
                     <!-- Round score will be displayed here -->
                 </div>
-            </div>
-
-            <div class="words-table" id="wordsTable">
-                <h3>Words Guessed This Round</h3>
-                <table id="roundWordsTable">
-                    <thead>
-                        <tr>
-                            <th>Word</th>
-                            <th>Points</th>
-                        </tr>
-                    </thead>
-                    <tbody id="roundWordsBody">
-                        <!-- Words will be listed here -->
-                    </tbody>
-                </table>
             </div>
 
             <div class="high-scores">
@@ -1146,15 +1101,6 @@
             // Show round score
             const roundScore = currentRoundCorrectWords.reduce((sum, w) => sum + w.points, 0);
             document.getElementById('roundScore').innerHTML = `<h3>Round Score: ${roundScore} points</h3>`;
-
-            // Show words guessed
-            const tbody = document.getElementById('roundWordsBody');
-            tbody.innerHTML = '';
-            currentRoundCorrectWords.forEach(word => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${word.word}</td><td>+${word.points}</td>`;
-                tbody.appendChild(tr);
-            });
 
             // Show high scores
             const highScoresBody = document.getElementById('highScoresBody');
