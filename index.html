@@ -384,36 +384,6 @@
             color: #721c24;
         }
 
-        .words-table {
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
-        .words-table h3 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .words-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .words-table th,
-        .words-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 18px;
-        }
-
-        .words-table th {
-            background: #f8f9fa;
-            font-weight: bold;
-            color: #495057;
-        }
-
         .high-scores {
             background: #f8f9fa;
             padding: 25px;
@@ -481,26 +451,26 @@
             display: block;
             font-size: 26px;
             font-weight: 500;
-            line-height: 1.2;
+            line-height: 1;
         }
 
         .underscore {
             display: block;
             font-size: 26px;
             line-height: 1;
-            margin-top: -2px;
+            margin-top: -5px;
         }
 
         .letter-flash {
-            animation: yellowFlash 0.5s ease;
+            animation: greyFlash 0.5s ease;
         }
 
-        @keyframes yellowFlash {
+        @keyframes greyFlash {
             0% {
                 background-color: transparent;
             }
             50% {
-                background-color: #ffd700;
+                background-color: #d3d3d3;
             }
             100% {
                 background-color: transparent;
@@ -573,21 +543,6 @@
                 <div id="roundScore">
                     <!-- Round score will be displayed here -->
                 </div>
-            </div>
-
-            <div class="words-table" id="wordsTable">
-                <h3>Words Guessed This Round</h3>
-                <table id="roundWordsTable">
-                    <thead>
-                        <tr>
-                            <th>Word</th>
-                            <th>Points</th>
-                        </tr>
-                    </thead>
-                    <tbody id="roundWordsBody">
-                        <!-- Words will be listed here -->
-                    </tbody>
-                </table>
             </div>
 
             <div class="high-scores">
@@ -991,7 +946,7 @@
 
         // Reveal a random letter
         function revealRandomLetter() {
-            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length);
+            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length - 1);
             if (unrevealed.length === 0) return;
 
             const synonym = unrevealed[Math.floor(Math.random() * unrevealed.length)];
@@ -999,8 +954,8 @@
 
             // Find next unrevealed letter position
             const letterIndex = synonym.toSwap;
-            if (letterIndex < synonym.word.length) {
-                // Reveal the letter
+            if (letterIndex < synonym.word.length - 1) {
+                // Reveal the letter (never reveal the last letter)
                 synonym.revealedLetters[letterIndex] = true;
                 synonym.toSwap++;
 
@@ -1052,11 +1007,16 @@
                         points: pointsEarned
                     });
 
-                    // Update UI without any layout-shifting animations
+                    // Reveal all letters including the last one
+                    for (let j = 0; j < synonym.word.length; j++) {
+                        synonym.revealedLetters[j] = true;
+                    }
+
+                    // Update UI maintaining the same styling with underscores
                     const cell = document.getElementById(`synonym-${i}`);
                     if (cell) {
                         cell.classList.add('revealed');
-                        cell.innerHTML = `${synonym.word} <span class="points-earned">+${pointsEarned}</span>`;
+                        cell.innerHTML = `${generateWordDisplay(synonym)} <span class="points-earned">+${pointsEarned}</span>`;
                     }
 
                     // Show points popup (fixed position, won't affect layout)
@@ -1146,15 +1106,6 @@
             // Show round score
             const roundScore = currentRoundCorrectWords.reduce((sum, w) => sum + w.points, 0);
             document.getElementById('roundScore').innerHTML = `<h3>Round Score: ${roundScore} points</h3>`;
-
-            // Show words guessed
-            const tbody = document.getElementById('roundWordsBody');
-            tbody.innerHTML = '';
-            currentRoundCorrectWords.forEach(word => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${word.word}</td><td>+${word.points}</td>`;
-                tbody.appendChild(tr);
-            });
 
             // Show high scores
             const highScoresBody = document.getElementById('highScoresBody');
