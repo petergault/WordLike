@@ -76,9 +76,17 @@
             font-size: 28px;
             font-weight: 600;
             color: #2c3e50;
-            white-space: nowrap;
             position: absolute;
             left: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .high-score-display {
+            font-size: 18px;
+            font-weight: 500;
+            color: #555;
         }
 
         .timer-section {
@@ -498,7 +506,10 @@
             <div class="current-word" id="currentWord">Loading...</div>
             <div class="definition" id="definition">Loading definition...</div>
         </div>
-        <div class="round-info" id="roundInfo">Round 1</div>
+        <div class="round-info" id="roundInfo">
+            <div id="roundNumber">Round 1</div>
+            <div class="high-score-display" id="highScoreDisplay">High Score: 0</div>
+        </div>
         <div class="timer-section">
             <div class="timer" id="timer">1:00</div>
             <div class="points" id="points">0 Points</div>
@@ -698,7 +709,8 @@
         let currentSynonyms = [];
         let timer = null;
         let secondsRemaining = 60;
-        let totalPoints = 0;
+        let currentRoundPoints = 0;
+        let highScore = 0;
         let currentRoundCorrectWords = [];
         let highScores = [];
         let inactivityCounter = 0;
@@ -777,6 +789,7 @@
 
             // Reset round state
             currentRoundCorrectWords = [];
+            currentRoundPoints = 0;
             secondsRemaining = 60;
             inactivityCounter = 0;
             lastActivity = Date.now();
@@ -787,8 +800,9 @@
             // Update UI
             document.getElementById('currentWord').textContent = currentWordData.word;
             document.getElementById('definition').textContent = currentWordData.definition;
-            document.getElementById('roundInfo').textContent = `Round ${currentRound}`;
-            document.getElementById('points').textContent = `${totalPoints} Points`;
+            document.getElementById('roundNumber').textContent = `Round ${currentRound}`;
+            document.getElementById('highScoreDisplay').textContent = `High Score: ${highScore}`;
+            document.getElementById('points').textContent = `${currentRoundPoints} Points`;
             document.getElementById('wordInput').placeholder = `Synonym for ${currentWordData.word}`;
             document.getElementById('wordInput').value = '';
             document.getElementById('wordInput').disabled = false;
@@ -998,8 +1012,8 @@
                     synonym.points = pointsEarned;
                     synonym.revealed = true;
 
-                    // Update total points
-                    totalPoints += pointsEarned;
+                    // Update round points
+                    currentRoundPoints += pointsEarned;
 
                     // Add to correct words list
                     currentRoundCorrectWords.push({
@@ -1032,7 +1046,7 @@
                         }
                     }, 1000);
 
-                    document.getElementById('points').textContent = `${totalPoints} Points`;
+                    document.getElementById('points').textContent = `${currentRoundPoints} Points`;
 
                     found = true;
                     lastActivity = Date.now();
@@ -1067,6 +1081,11 @@
 
             // Calculate round score
             const roundScore = currentRoundCorrectWords.reduce((sum, w) => sum + w.points, 0);
+
+            // Update high score if this round beat it
+            if (roundScore > highScore) {
+                highScore = roundScore;
+            }
 
             // Save current score to high scores if it's good
             if (roundScore > 0) {
@@ -1135,7 +1154,7 @@
             if (currentRound >= totalRounds) {
                 // Reset game
                 currentRound = 1;
-                totalPoints = 0;
+                highScore = 0;
                 randomizeWordOrder();
             } else {
                 currentRound++;
