@@ -469,6 +469,44 @@
             box-shadow: 0 7px 20px rgba(52, 152, 219, 0.4);
         }
 
+        /* Letter reveal styles */
+        .letter-container {
+            display: inline-block;
+            margin: 0 3px;
+            text-align: center;
+            min-width: 15px;
+        }
+
+        .letter {
+            display: block;
+            font-size: 26px;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .underscore {
+            display: block;
+            font-size: 26px;
+            line-height: 1;
+            margin-top: -2px;
+        }
+
+        .letter-flash {
+            animation: yellowFlash 0.5s ease;
+        }
+
+        @keyframes yellowFlash {
+            0% {
+                background-color: transparent;
+            }
+            50% {
+                background-color: #ffd700;
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+
         /* Hidden class */
         .hidden {
             display: none !important;
@@ -765,9 +803,10 @@
 
             // Take all synonyms from the current word data
             for (let i = 0; i < currentWordData.synonyms.length && i < 12; i++) {
+                const word = currentWordData.synonyms[i];
                 currentSynonyms.push({
-                    word: currentWordData.synonyms[i],
-                    dummy: currentWordData.synonyms[i][0].toUpperCase() + '.' + '.'.repeat(currentWordData.synonyms[i].length - 1),
+                    word: word,
+                    revealedLetters: [true, ...Array(word.length - 1).fill(false)], // First letter revealed
                     toSwap: 1,
                     revealed: false,
                     points: 0
@@ -807,6 +846,25 @@
             countdown();
         }
 
+        // Generate HTML for displaying a word with underscores
+        function generateWordDisplay(synonym) {
+            const word = synonym.word;
+            const revealedLetters = synonym.revealedLetters;
+            let html = '';
+
+            for (let i = 0; i < word.length; i++) {
+                const letter = word[i];
+                const isRevealed = revealedLetters[i];
+
+                html += `<span class="letter-container" id="letter-${i}">`;
+                html += `<span class="letter">${isRevealed ? letter.toUpperCase() : ' '}</span>`;
+                html += `<span class="underscore">_</span>`;
+                html += `</span>`;
+            }
+
+            return html;
+        }
+
         // Create synonym grid
         function createSynonymGrid() {
             const tbody = document.getElementById('synonymsBody');
@@ -822,7 +880,7 @@
 
                     if (cellIndex < currentSynonyms.length) {
                         td.id = `synonym-${cellIndex}`;
-                        td.textContent = currentSynonyms[cellIndex].dummy;
+                        td.innerHTML = generateWordDisplay(currentSynonyms[cellIndex]);
                     } else {
                         // Empty cell for padding if less than 12 synonyms
                         td.style.border = 'none';
@@ -933,22 +991,35 @@
 
         // Reveal a random letter
         function revealRandomLetter() {
-            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length - 1);
+            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length);
             if (unrevealed.length === 0) return;
 
             const synonym = unrevealed[Math.floor(Math.random() * unrevealed.length)];
             const index = currentSynonyms.indexOf(synonym);
 
-            // Reveal next letter
-            let dummy = synonym.word.substring(0, synonym.toSwap + 1);
-            dummy += '.'.repeat(synonym.word.length - synonym.toSwap - 1);
-            synonym.dummy = dummy;
-            synonym.toSwap++;
+            // Find next unrevealed letter position
+            const letterIndex = synonym.toSwap;
+            if (letterIndex < synonym.word.length) {
+                // Reveal the letter
+                synonym.revealedLetters[letterIndex] = true;
+                synonym.toSwap++;
 
-            // Update display
-            const cell = document.getElementById(`synonym-${index}`);
-            if (cell) {
-                cell.textContent = synonym.dummy;
+                // Update display with flash effect
+                const cell = document.getElementById(`synonym-${index}`);
+                if (cell) {
+                    cell.innerHTML = generateWordDisplay(synonym);
+
+                    // Add flash animation to the newly revealed letter
+                    const letterContainers = cell.querySelectorAll('.letter-container');
+                    if (letterContainers[letterIndex]) {
+                        letterContainers[letterIndex].classList.add('letter-flash');
+
+                        // Remove flash class after animation completes
+                        setTimeout(() => {
+                            letterContainers[letterIndex].classList.remove('letter-flash');
+                        }, 500);
+                    }
+                }
             }
         }
 
