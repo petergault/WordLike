@@ -451,26 +451,26 @@
             display: block;
             font-size: 26px;
             font-weight: 500;
-            line-height: 1.2;
+            line-height: 1;
         }
 
         .underscore {
             display: block;
             font-size: 26px;
             line-height: 1;
-            margin-top: -2px;
+            margin-top: -5px;
         }
 
         .letter-flash {
-            animation: yellowFlash 0.5s ease;
+            animation: greyFlash 0.5s ease;
         }
 
-        @keyframes yellowFlash {
+        @keyframes greyFlash {
             0% {
                 background-color: transparent;
             }
             50% {
-                background-color: #ffd700;
+                background-color: #d3d3d3;
             }
             100% {
                 background-color: transparent;
@@ -946,7 +946,7 @@
 
         // Reveal a random letter
         function revealRandomLetter() {
-            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length);
+            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length - 1);
             if (unrevealed.length === 0) return;
 
             const synonym = unrevealed[Math.floor(Math.random() * unrevealed.length)];
@@ -954,8 +954,8 @@
 
             // Find next unrevealed letter position
             const letterIndex = synonym.toSwap;
-            if (letterIndex < synonym.word.length) {
-                // Reveal the letter
+            if (letterIndex < synonym.word.length - 1) {
+                // Reveal the letter (never reveal the last letter)
                 synonym.revealedLetters[letterIndex] = true;
                 synonym.toSwap++;
 
@@ -1007,11 +1007,16 @@
                         points: pointsEarned
                     });
 
-                    // Update UI without any layout-shifting animations
+                    // Reveal all letters including the last one
+                    for (let j = 0; j < synonym.word.length; j++) {
+                        synonym.revealedLetters[j] = true;
+                    }
+
+                    // Update UI maintaining the same styling with underscores
                     const cell = document.getElementById(`synonym-${i}`);
                     if (cell) {
                         cell.classList.add('revealed');
-                        cell.innerHTML = `${synonym.word} <span class="points-earned">+${pointsEarned}</span>`;
+                        cell.innerHTML = `${generateWordDisplay(synonym)} <span class="points-earned">+${pointsEarned}</span>`;
                     }
 
                     // Show points popup (fixed position, won't affect layout)
