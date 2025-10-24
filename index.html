@@ -2135,7 +2135,34 @@
                 }
             }
 
+            // Load current round from localStorage
+            const savedRound = localStorage.getItem('wordlikeCurrentRound');
+            if (savedRound) {
+                try {
+                    currentRound = parseInt(savedRound, 10);
+                    if (isNaN(currentRound) || currentRound < 1) {
+                        currentRound = 1;
+                    }
+                } catch (e) {
+                    currentRound = 1;
+                }
+            }
+
+            // Load high score from localStorage
+            const savedHighScore = localStorage.getItem('wordlikeHighScore');
+            if (savedHighScore) {
+                try {
+                    highScore = parseInt(savedHighScore, 10);
+                    if (isNaN(highScore)) {
+                        highScore = 0;
+                    }
+                } catch (e) {
+                    highScore = 0;
+                }
+            }
+
             document.getElementById('currentRoundDisplay').textContent = `Round ${currentRound}`;
+            document.getElementById('highScoreDisplay').textContent = `High Score: ${highScore}`;
             console.log(`Game initialized with ${gameData.length} words`);
         }
 
@@ -2511,6 +2538,8 @@
             // Update high score if this round beat it
             if (roundScore > highScore) {
                 highScore = roundScore;
+                localStorage.setItem('wordlikeHighScore', highScore.toString());
+                document.getElementById('highScoreDisplay').textContent = `High Score: ${highScore}`;
             }
 
             // Save current score to high scores if it's good
@@ -2582,9 +2611,12 @@
                 // Reset game
                 currentRound = 1;
                 highScore = 0;
+                localStorage.setItem('wordlikeCurrentRound', currentRound.toString());
+                localStorage.setItem('wordlikeHighScore', highScore.toString());
                 randomizeWordOrder();
             } else {
                 currentRound++;
+                localStorage.setItem('wordlikeCurrentRound', currentRound.toString());
             }
 
             startRound();
