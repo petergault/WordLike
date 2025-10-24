@@ -424,12 +424,15 @@
             display: inline-block;
             margin: 0 3px;
             text-align: center;
-            min-width: 15px;
+            width: 20px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 2px;
         }
 
         .letter-container.hyphen-separator {
-            min-width: 10px;
+            width: 10px;
             margin: 0 5px;
+            border-bottom: none;
         }
 
         .letter {
@@ -437,13 +440,8 @@
             font-size: 26px;
             font-weight: 500;
             line-height: 1;
-        }
-
-        .underscore {
-            display: block;
-            font-size: 26px;
-            line-height: 1;
-            margin-top: -5px;
+            font-family: 'Courier New', monospace;
+            height: 30px;
         }
 
         .hyphen-separator .letter {
@@ -2125,11 +2123,10 @@
                     html += `<span class="letter">·</span>`;
                     html += `</span>`;
                 } else {
-                    // Show letter with underscore
+                    // Show letter with bottom border
                     const isRevealed = revealedLetters[wordIndex];
                     html += `<span class="letter-container" id="letter-${wordIndex}">`;
                     html += `<span class="letter">${isRevealed ? char.toUpperCase() : ' '}</span>`;
-                    html += `<span class="underscore">_</span>`;
                     html += `</span>`;
                     wordIndex++;
                 }
