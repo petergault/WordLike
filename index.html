@@ -19,30 +19,6 @@
             flex-direction: column;
         }
 
-        /* Header Styles */
-        .header {
-            background-color: #1abc9c;
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .logo {
-            font-size: 36px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .player-name {
-            font-size: 20px;
-            font-weight: 500;
-        }
-
         /* Game Info Bar */
         .game-info {
             background-color: #c8c8c8;
@@ -265,7 +241,7 @@
         .synonyms-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 20px;
+            border-spacing: 50px 20px; /* 50px horizontal, 20px vertical */
         }
 
         .synonym-cell {
@@ -278,7 +254,7 @@
             background: white;
             transition: all 0.3s ease;
             position: relative;
-            min-width: 250px;
+            width: 400px; /* Fixed width */
             border-radius: 10px;
             color: #2c3e50;
         }
@@ -502,14 +478,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="logo">
-            Quill 🖊️
-        </div>
-        <div class="player-name" id="playerName">Player</div>
-    </div>
-
     <!-- Game Info Bar -->
     <div class="game-info hidden" id="gameInfo">
         <div class="word-section">
@@ -2046,6 +2014,7 @@
         let inactivityCounter = 0;
         let lastActivity = Date.now();
         let randomizedWordOrder = [];
+        let currentRevealWordIndex = 0; // Track which word (0-11) to reveal next
 
         // Initialize game
         function initGame() {
@@ -2061,11 +2030,6 @@
                     highScores = [];
                 }
             }
-
-            // Set player name
-            const animals = ['King Penguin', 'Lion', 'Eagle', 'Dolphin', 'Tiger', 'Wolf', 'Fox', 'Bear', 'Hawk', 'Shark'];
-            const playerName = animals[Math.floor(Math.random() * animals.length)] + ' (You)';
-            document.getElementById('playerName').textContent = playerName;
 
             document.getElementById('currentRoundDisplay').textContent = `Round ${currentRound}`;
             console.log(`Game initialized with ${gameData.length} words`);
@@ -2098,8 +2062,8 @@
             // Reset the synonyms array
             currentSynonyms = [];
 
-            // Take all synonyms from the current word data
-            for (let i = 0; i < currentWordData.synonyms.length && i < 12; i++) {
+            // Take first 9 synonyms from the current word data
+            for (let i = 0; i < currentWordData.synonyms.length && i < 9; i++) {
                 const synonymData = currentWordData.synonyms[i];
                 const word = synonymData.word;
                 currentSynonyms.push({
@@ -2125,6 +2089,7 @@
             secondsRemaining = 60;
             inactivityCounter = 0;
             lastActivity = Date.now();
+            currentRevealWordIndex = 0; // Reset sequential reveal to start at first word
 
             // Prepare synonyms - now handles 12 synonyms
             prepareCurrentSynonyms();
@@ -2182,11 +2147,11 @@
             const tbody = document.getElementById('synonymsBody');
             tbody.innerHTML = '';
 
-            // Create 3 rows with 4 cells each (total of 12)
+            // Create 3 rows with 3 cells each (total of 9)
             let cellIndex = 0;
             for (let row = 0; row < 3; row++) {
                 const tr = document.createElement('tr');
-                for (let col = 0; col < 4; col++) {
+                for (let col = 0; col < 3; col++) {
                     const td = document.createElement('td');
                     td.className = 'synonym-cell';
 
@@ -2194,7 +2159,7 @@
                         td.id = `synonym-${cellIndex}`;
                         td.innerHTML = generateWordDisplay(currentSynonyms[cellIndex]);
                     } else {
-                        // Empty cell for padding if less than 12 synonyms
+                        // Empty cell for padding if less than 9 synonyms
                         td.style.border = 'none';
                         td.style.background = 'transparent';
                         td.textContent = '';
@@ -2301,38 +2266,51 @@
             }
         }
 
-        // Reveal a random letter
+        // Reveal next letter sequentially (top-left to bottom-right)
         function revealRandomLetter() {
-            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length - 1);
-            if (unrevealed.length === 0) return;
+            // Sequential reveal: go from word 0 to 11, then back to 0 for next letter
+            const totalWords = currentSynonyms.length;
+            let attempts = 0;
 
-            const synonym = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-            const index = currentSynonyms.indexOf(synonym);
+            // Try to find a word that can reveal a letter
+            while (attempts < totalWords) {
+                const synonym = currentSynonyms[currentRevealWordIndex];
+                const letterIndex = synonym.toSwap;
 
-            // Find next unrevealed letter position
-            const letterIndex = synonym.toSwap;
-            if (letterIndex < synonym.word.length - 1) {
-                // Reveal the letter (never reveal the last letter)
-                synonym.revealedLetters[letterIndex] = true;
-                synonym.toSwap++;
+                // Check if this word can reveal a letter (not already revealed, not at last letter)
+                if (!synonym.revealed && letterIndex < synonym.word.length - 1) {
+                    // Reveal the letter (never reveal the last letter)
+                    synonym.revealedLetters[letterIndex] = true;
+                    synonym.toSwap++;
 
-                // Update display with flash effect
-                const cell = document.getElementById(`synonym-${index}`);
-                if (cell) {
-                    cell.innerHTML = generateWordDisplay(synonym);
+                    // Update display with flash effect
+                    const cell = document.getElementById(`synonym-${currentRevealWordIndex}`);
+                    if (cell) {
+                        cell.innerHTML = generateWordDisplay(synonym);
 
-                    // Add flash animation to the newly revealed letter
-                    const letterContainers = cell.querySelectorAll('.letter-container');
-                    if (letterContainers[letterIndex]) {
-                        letterContainers[letterIndex].classList.add('letter-flash');
+                        // Add flash animation to the newly revealed letter
+                        const letterContainers = cell.querySelectorAll('.letter-container');
+                        if (letterContainers[letterIndex]) {
+                            letterContainers[letterIndex].classList.add('letter-flash');
 
-                        // Remove flash class after animation completes
-                        setTimeout(() => {
-                            letterContainers[letterIndex].classList.remove('letter-flash');
-                        }, 500);
+                            // Remove flash class after animation completes
+                            setTimeout(() => {
+                                letterContainers[letterIndex].classList.remove('letter-flash');
+                            }, 500);
+                        }
                     }
+
+                    // Move to next word for next reveal
+                    currentRevealWordIndex = (currentRevealWordIndex + 1) % totalWords;
+                    return;
                 }
+
+                // This word can't reveal, try next word
+                currentRevealWordIndex = (currentRevealWordIndex + 1) % totalWords;
+                attempts++;
             }
+
+            // If we get here, no words can reveal (all done or all guessed)
         }
 
         // Check word - Global function for onclick
