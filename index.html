@@ -2637,6 +2637,9 @@
                     synonym.points = pointsEarned;
                     synonym.revealed = true;
 
+                    // Play success sound based on points
+                    playSuccessSound(pointsEarned);
+
                     // Update round points
                     currentRoundPoints += pointsEarned;
 
@@ -2796,6 +2799,28 @@
         // Next round - Keep for backward compatibility if needed
         function nextRound() {
             startNextRound();
+        }
+
+        // Play sound based on points earned
+        function playSuccessSound(points) {
+            let soundFile;
+            if (points === 1) {
+                soundFile = 'clink_1note.wav';
+            } else if (points === 2) {
+                soundFile = 'clink_2notes.wav';
+            } else if (points === 3) {
+                soundFile = 'clink_3notes.wav';
+            } else if (points >= 4) {
+                soundFile = 'clink_4notes.wav';
+            }
+
+            if (soundFile) {
+                const audio = new Audio(soundFile);
+                audio.volume = 0.5; // Set volume to 50%
+                audio.play().catch(err => {
+                    console.log('Sound play failed:', err);
+                });
+            }
         }
 
         // Gameplay demo animation
