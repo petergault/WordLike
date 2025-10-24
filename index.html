@@ -427,6 +427,7 @@
             width: 20px;
             border-bottom: 2px solid #2c3e50;
             padding-bottom: 2px;
+            vertical-align: bottom;
         }
 
         .letter-container.hyphen-separator {
@@ -439,9 +440,10 @@
             display: block;
             font-size: 26px;
             font-weight: 500;
-            line-height: 1;
+            line-height: 30px;
             font-family: Consolas, Monaco, 'SF Mono', Menlo, monospace;
             height: 30px;
+            min-height: 30px;
         }
 
         .hyphen-separator .letter {
@@ -2201,7 +2203,7 @@
                     const missedClass = (showAllLetters && !isRevealed) ? ' missed' : '';
 
                     html += `<span class="letter-container" id="letter-${wordIndex}">`;
-                    html += `<span class="letter${missedClass}">${shouldShowLetter ? char.toUpperCase() : ' '}</span>`;
+                    html += `<span class="letter${missedClass}">${shouldShowLetter ? char.toUpperCase() : '&nbsp;'}</span>`;
                     html += `</span>`;
                     wordIndex++;
                 }
