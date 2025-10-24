@@ -2314,7 +2314,7 @@
                 const now = Date.now();
                 if (now - lastActivity > 1000) {
                     inactivityCounter++;
-                    if (inactivityCounter >= 1) {
+                    if (inactivityCounter >= 2) {
                         revealRandomLetter();
                         inactivityCounter = 0;
                     }
