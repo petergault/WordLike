@@ -2014,6 +2014,7 @@
         let inactivityCounter = 0;
         let lastActivity = Date.now();
         let randomizedWordOrder = [];
+        let currentRevealWordIndex = 0; // Track which word (0-11) to reveal next
 
         // Initialize game
         function initGame() {
@@ -2088,6 +2089,7 @@
             secondsRemaining = 60;
             inactivityCounter = 0;
             lastActivity = Date.now();
+            currentRevealWordIndex = 0; // Reset sequential reveal to start at first word
 
             // Prepare synonyms - now handles 12 synonyms
             prepareCurrentSynonyms();
@@ -2264,38 +2266,51 @@
             }
         }
 
-        // Reveal a random letter
+        // Reveal next letter sequentially (top-left to bottom-right)
         function revealRandomLetter() {
-            const unrevealed = currentSynonyms.filter(s => !s.revealed && s.toSwap < s.word.length - 1);
-            if (unrevealed.length === 0) return;
+            // Sequential reveal: go from word 0 to 11, then back to 0 for next letter
+            const totalWords = currentSynonyms.length;
+            let attempts = 0;
 
-            const synonym = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-            const index = currentSynonyms.indexOf(synonym);
+            // Try to find a word that can reveal a letter
+            while (attempts < totalWords) {
+                const synonym = currentSynonyms[currentRevealWordIndex];
+                const letterIndex = synonym.toSwap;
 
-            // Find next unrevealed letter position
-            const letterIndex = synonym.toSwap;
-            if (letterIndex < synonym.word.length - 1) {
-                // Reveal the letter (never reveal the last letter)
-                synonym.revealedLetters[letterIndex] = true;
-                synonym.toSwap++;
+                // Check if this word can reveal a letter (not already revealed, not at last letter)
+                if (!synonym.revealed && letterIndex < synonym.word.length - 1) {
+                    // Reveal the letter (never reveal the last letter)
+                    synonym.revealedLetters[letterIndex] = true;
+                    synonym.toSwap++;
 
-                // Update display with flash effect
-                const cell = document.getElementById(`synonym-${index}`);
-                if (cell) {
-                    cell.innerHTML = generateWordDisplay(synonym);
+                    // Update display with flash effect
+                    const cell = document.getElementById(`synonym-${currentRevealWordIndex}`);
+                    if (cell) {
+                        cell.innerHTML = generateWordDisplay(synonym);
 
-                    // Add flash animation to the newly revealed letter
-                    const letterContainers = cell.querySelectorAll('.letter-container');
-                    if (letterContainers[letterIndex]) {
-                        letterContainers[letterIndex].classList.add('letter-flash');
+                        // Add flash animation to the newly revealed letter
+                        const letterContainers = cell.querySelectorAll('.letter-container');
+                        if (letterContainers[letterIndex]) {
+                            letterContainers[letterIndex].classList.add('letter-flash');
 
-                        // Remove flash class after animation completes
-                        setTimeout(() => {
-                            letterContainers[letterIndex].classList.remove('letter-flash');
-                        }, 500);
+                            // Remove flash class after animation completes
+                            setTimeout(() => {
+                                letterContainers[letterIndex].classList.remove('letter-flash');
+                            }, 500);
+                        }
                     }
+
+                    // Move to next word for next reveal
+                    currentRevealWordIndex = (currentRevealWordIndex + 1) % totalWords;
+                    return;
                 }
+
+                // This word can't reveal, try next word
+                currentRevealWordIndex = (currentRevealWordIndex + 1) % totalWords;
+                attempts++;
             }
+
+            // If we get here, no words can reveal (all done or all guessed)
         }
 
         // Check word - Global function for onclick
