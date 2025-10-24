@@ -241,7 +241,7 @@
         .synonyms-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 20px;
+            border-spacing: 50px 20px; /* 50px horizontal, 20px vertical */
         }
 
         .synonym-cell {
@@ -254,7 +254,7 @@
             background: white;
             transition: all 0.3s ease;
             position: relative;
-            min-width: 250px;
+            width: 400px; /* Fixed width */
             border-radius: 10px;
             color: #2c3e50;
         }
@@ -2062,8 +2062,8 @@
             // Reset the synonyms array
             currentSynonyms = [];
 
-            // Take all synonyms from the current word data
-            for (let i = 0; i < currentWordData.synonyms.length && i < 12; i++) {
+            // Take first 9 synonyms from the current word data
+            for (let i = 0; i < currentWordData.synonyms.length && i < 9; i++) {
                 const synonymData = currentWordData.synonyms[i];
                 const word = synonymData.word;
                 currentSynonyms.push({
@@ -2147,11 +2147,11 @@
             const tbody = document.getElementById('synonymsBody');
             tbody.innerHTML = '';
 
-            // Create 3 rows with 4 cells each (total of 12)
+            // Create 3 rows with 3 cells each (total of 9)
             let cellIndex = 0;
             for (let row = 0; row < 3; row++) {
                 const tr = document.createElement('tr');
-                for (let col = 0; col < 4; col++) {
+                for (let col = 0; col < 3; col++) {
                     const td = document.createElement('td');
                     td.className = 'synonym-cell';
 
@@ -2159,7 +2159,7 @@
                         td.id = `synonym-${cellIndex}`;
                         td.innerHTML = generateWordDisplay(currentSynonyms[cellIndex]);
                     } else {
-                        // Empty cell for padding if less than 12 synonyms
+                        // Empty cell for padding if less than 9 synonyms
                         td.style.border = 'none';
                         td.style.background = 'transparent';
                         td.textContent = '';
