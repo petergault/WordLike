@@ -469,6 +469,74 @@
         .hidden {
             display: none !important;
         }
+
+        /* Score Modal */
+        .score-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .score-modal.show {
+            display: flex;
+        }
+
+        .score-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 80px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-modal-medal {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .score-modal-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .score-modal-high-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* Next Round Button */
+        .next-round-button {
+            background-color: #1abc9c;
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 22px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(26, 188, 156, 0.3);
+        }
+
+        .next-round-button:hover {
+            background-color: #16a085;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(26, 188, 156, 0.4);
+        }
+
+        /* Red letters for missed words */
+        .letter.missed {
+            color: #e74c3c;
+        }
     </style>
 </head>
 <body>
@@ -509,10 +577,14 @@
                 </table>
             </div>
 
-            <div class="input-section">
+            <div class="input-section" id="inputSection">
                 <input type="text" class="word-input" id="wordInput" placeholder="Enter a synonym">
                 <button class="check-button" id="checkButton" onclick="checkWord()">Check Word</button>
                 <div class="hint-text">Press enter to clear</div>
+            </div>
+
+            <div class="input-section" id="nextRoundSection" style="display: none;">
+                <button class="next-round-button" onclick="startNextRound()">Next Round</button>
             </div>
         </div>
 
@@ -2107,7 +2179,7 @@
         }
 
         // Generate HTML for displaying a word with underscores
-        function generateWordDisplay(synonym) {
+        function generateWordDisplay(synonym, showAllLetters = false) {
             const syllables = synonym.syllables;  // e.g., "in-cred-i-ble"
             const word = synonym.word;  // e.g., "incredible"
             const revealedLetters = synonym.revealedLetters;
@@ -2125,8 +2197,11 @@
                 } else {
                     // Show letter with bottom border
                     const isRevealed = revealedLetters[wordIndex];
+                    const shouldShowLetter = isRevealed || showAllLetters;
+                    const missedClass = (showAllLetters && !isRevealed) ? ' missed' : '';
+
                     html += `<span class="letter-container" id="letter-${wordIndex}">`;
-                    html += `<span class="letter">${isRevealed ? char.toUpperCase() : ' '}</span>`;
+                    html += `<span class="letter${missedClass}">${shouldShowLetter ? char.toUpperCase() : ' '}</span>`;
                     html += `</span>`;
                     wordIndex++;
                 }
@@ -2382,13 +2457,12 @@
         function endRound() {
             clearInterval(timer);
 
-            // Reveal all remaining words
+            // Reveal all remaining words with red letters for missed ones
             currentSynonyms.forEach((synonym, index) => {
                 if (!synonym.revealed) {
                     const cell = document.getElementById(`synonym-${index}`);
                     if (cell) {
-                        cell.textContent = synonym.word;
-                        cell.style.color = '#95a5a6';
+                        cell.innerHTML = generateWordDisplay(synonym, true);
                     }
                 }
             });
@@ -2417,54 +2491,51 @@
                 localStorage.setItem('wordlikeHighScores', JSON.stringify(highScores.map(s => ({ score: s.score, round: s.round }))));
             }
 
-            // Show score screen
-            showScoreScreen();
+            // Hide input section and show Next Round button
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('nextRoundSection').style.display = 'block';
+
+            // Show score modal
+            showScoreModal(roundScore);
         }
 
-        // Show score screen
-        function showScoreScreen() {
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('scoreScreen').style.display = 'block';
+        // Show score modal with medal
+        function showScoreModal(roundScore) {
+            const modal = document.getElementById('scoreModal');
+            const medal = document.getElementById('modalMedal');
+            const score = document.getElementById('modalScore');
+            const highScoreText = document.getElementById('modalHighScore');
 
-            // Check goal
-            const goalMet = currentRoundCorrectWords.length >= 5;
-            const goalResult = document.getElementById('goalResult');
-            if (goalMet) {
-                goalResult.className = 'goal-result success';
-                goalResult.innerHTML = `✓ Goal achieved! You got ${currentRoundCorrectWords.length} words correct!`;
-            } else {
-                goalResult.innerHTML = `✗ Goal not met. You got ${currentRoundCorrectWords.length} words correct (needed 5).`;
+            // Determine medal based on score
+            let medalEmoji = '';
+            if (roundScore > 30) {
+                medalEmoji = '🥇'; // Gold
+            } else if (roundScore >= 15) {
+                medalEmoji = '🥈'; // Silver
+            } else if (roundScore >= 5) {
+                medalEmoji = '🥉'; // Bronze
             }
 
-            // Show round score
-            const roundScore = currentRoundCorrectWords.reduce((sum, w) => sum + w.points, 0);
-            document.getElementById('roundScore').innerHTML = `<h3>Round Score: ${roundScore} points</h3>`;
+            // Set modal content
+            medal.textContent = medalEmoji;
+            score.textContent = `Your Score: ${roundScore}`;
+            highScoreText.textContent = `High Score: ${highScore}`;
 
-            // Show high scores
-            const highScoresBody = document.getElementById('highScoresBody');
-            highScoresBody.innerHTML = '';
-            highScores.forEach((score, index) => {
-                const tr = document.createElement('tr');
-                if (score.isCurrent) {
-                    tr.className = 'current-score';
-                }
-                tr.innerHTML = `<td>${index + 1}</td><td>${score.score}</td><td>Round ${score.round}</td>`;
-                highScoresBody.appendChild(tr);
-            });
+            // Show modal
+            modal.classList.add('show');
 
-            // Clear current flag
-            highScores.forEach(s => delete s.isCurrent);
-
-            // Update button text
-            if (currentRound >= totalRounds) {
-                document.getElementById('continueButton').textContent = 'Start New Game';
-            } else {
-                document.getElementById('continueButton').textContent = 'Next Round';
-            }
+            // Hide modal after 2 seconds
+            setTimeout(() => {
+                modal.classList.remove('show');
+            }, 2000);
         }
 
-        // Next round - Global function for onclick
-        function nextRound() {
+        // Start next round - Global function for onclick
+        function startNextRound() {
+            // Show input section and hide Next Round button
+            document.getElementById('inputSection').style.display = 'block';
+            document.getElementById('nextRoundSection').style.display = 'none';
+
             if (currentRound >= totalRounds) {
                 // Reset game
                 currentRound = 1;
@@ -2474,10 +2545,12 @@
                 currentRound++;
             }
 
-            document.getElementById('scoreScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
-
             startRound();
+        }
+
+        // Next round - Keep for backward compatibility if needed
+        function nextRound() {
+            startNextRound();
         }
 
         // Handle Enter key and initialize when DOM is ready
@@ -2491,5 +2564,14 @@
             });
         });
     </script>
+
+    <!-- Score Modal -->
+    <div class="score-modal" id="scoreModal">
+        <div class="score-modal-content">
+            <div class="score-modal-medal" id="modalMedal"></div>
+            <div class="score-modal-text" id="modalScore"></div>
+            <div class="score-modal-high-score" id="modalHighScore"></div>
+        </div>
+    </div>
 </body>
 </html>
