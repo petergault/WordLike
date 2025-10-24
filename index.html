@@ -185,25 +185,163 @@
             padding: 60px 40px;
             text-align: center;
             box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .start-screen h1 {
             font-size: 56px;
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .start-screen h2 {
-            font-size: 36px;
+            font-size: 24px;
             color: #7f8c8d;
             margin-bottom: 30px;
+            font-weight: 400;
         }
 
         .start-screen p {
-            font-size: 22px;
+            font-size: 20px;
             color: #7f8c8d;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             line-height: 1.6;
+        }
+
+        .how-to-play {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .how-to-play h3 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .how-to-play ol {
+            font-size: 18px;
+            color: #555;
+            line-height: 1.8;
+            padding-left: 25px;
+        }
+
+        .how-to-play li {
+            margin-bottom: 10px;
+        }
+
+        .gameplay-demo {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .demo-clue {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .demo-clue-word {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .demo-definition {
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+
+        .demo-grid {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .demo-word {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
+            min-width: 180px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+
+        .demo-word.revealed {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .demo-letter {
+            display: inline-block;
+            width: 15px;
+            border-bottom: 2px solid #2c3e50;
+            margin: 0 2px;
+            text-align: center;
+            animation: revealLetter 0.3s ease-in-out;
+        }
+
+        .demo-letter.hidden {
+            color: transparent;
+        }
+
+        .demo-input-container {
+            text-align: center;
+        }
+
+        .demo-input {
+            width: 300px;
+            padding: 12px 20px;
+            font-size: 20px;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            font-family: Consolas, Monaco, monospace;
+        }
+
+        .demo-input.typing {
+            border-color: #1abc9c;
+            animation: pulse-border 1s infinite;
+        }
+
+        @keyframes revealLetter {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-border {
+            0%, 100% {
+                border-color: #1abc9c;
+            }
+            50% {
+                border-color: #16a085;
+            }
+        }
+
+        @keyframes success-flash {
+            0%, 100% {
+                background: #d4edda;
+            }
+            50% {
+                background: #a8e6b8;
+            }
         }
 
         .start-button {
@@ -431,8 +569,8 @@
         }
 
         .letter-container.hyphen-separator {
-            width: 10px;
-            margin: 0 5px;
+            width: 6px;
+            margin: 0 2px;
             border-bottom: none;
             text-align: center;
             vertical-align: bottom;
@@ -454,6 +592,8 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             text-align: center;
             line-height: 30px;
+            position: relative;
+            top: -3px;
         }
 
         .letter-flash {
@@ -599,9 +739,40 @@
         <!-- Start Screen -->
         <div class="start-screen" id="startScreen">
             <h1>WordLike</h1>
-            <h2 id="currentRoundDisplay">Round 1</h2>
-            <p>Test your vocabulary skills! Guess as many synonyms as you can before time runs out.</p>
-            <p>Your goal: Get at least <strong>5 words</strong> correct per round.</p>
+            <h2>The Fast-Paced Vocabulary Game</h2>
+
+            <div class="how-to-play">
+                <h3>How to Play</h3>
+                <ol>
+                    <li>You'll see a <strong>clue word</strong> and its definition at the top</li>
+                    <li>Nine <strong>synonym boxes</strong> appear with hidden letters</li>
+                    <li><strong>Letters reveal</strong> automatically every 2 seconds</li>
+                    <li><strong>Type the synonym</strong> as soon as you recognize it</li>
+                    <li>Race against the <strong>60-second timer</strong> to guess them all!</li>
+                </ol>
+            </div>
+
+            <div class="gameplay-demo">
+                <div class="demo-clue">
+                    <div class="demo-clue-word">AMAZING</div>
+                    <div class="demo-definition">Causing great surprise or wonder</div>
+                </div>
+                <div class="demo-grid">
+                    <div class="demo-word" id="demoWord1">
+                        <span class="demo-letter hidden">I</span><span class="demo-letter hidden">N</span><span class="demo-letter hidden">C</span><span class="demo-letter hidden">R</span><span class="demo-letter hidden">E</span><span class="demo-letter hidden">D</span><span class="demo-letter hidden">I</span><span class="demo-letter hidden">B</span><span class="demo-letter hidden">L</span><span class="demo-letter hidden">E</span>
+                    </div>
+                    <div class="demo-word" id="demoWord2">
+                        <span class="demo-letter hidden">W</span><span class="demo-letter hidden">O</span><span class="demo-letter hidden">N</span><span class="demo-letter hidden">D</span><span class="demo-letter hidden">E</span><span class="demo-letter hidden">R</span><span class="demo-letter hidden">F</span><span class="demo-letter hidden">U</span><span class="demo-letter hidden">L</span>
+                    </div>
+                    <div class="demo-word" id="demoWord3">
+                        <span class="demo-letter hidden">M</span><span class="demo-letter hidden">A</span><span class="demo-letter hidden">R</span><span class="demo-letter hidden">V</span><span class="demo-letter hidden">E</span><span class="demo-letter hidden">L</span><span class="demo-letter hidden">O</span><span class="demo-letter hidden">U</span><span class="demo-letter hidden">S</span>
+                    </div>
+                </div>
+                <div class="demo-input-container">
+                    <input type="text" class="demo-input" id="demoInput" value="" readonly placeholder="Type synonym here...">
+                </div>
+            </div>
+
             <button class="start-button" onclick="startGame()">Start Game</button>
         </div>
 
@@ -2627,6 +2798,79 @@
             startNextRound();
         }
 
+        // Gameplay demo animation
+        function startDemoAnimation() {
+            const demoWords = [
+                { id: 'demoWord1', word: 'incredible', typedText: 'INCREDIBLE' },
+                { id: 'demoWord2', word: 'wonderful', typedText: 'WONDERFUL' },
+                { id: 'demoWord3', word: 'marvelous', typedText: 'MARVELOUS' }
+            ];
+            let currentWordIndex = 0;
+
+            function animateWord() {
+                const wordData = demoWords[currentWordIndex];
+                const wordEl = document.getElementById(wordData.id);
+                const inputEl = document.getElementById('demoInput');
+                const letters = wordEl.querySelectorAll('.demo-letter');
+
+                // Reset word state
+                wordEl.classList.remove('revealed');
+                letters.forEach(letter => {
+                    letter.classList.add('hidden');
+                    letter.style.color = 'transparent';
+                });
+                inputEl.value = '';
+                inputEl.classList.remove('typing');
+
+                let revealedCount = 0;
+                const totalLetters = letters.length;
+
+                // Reveal letters one by one
+                const revealInterval = setInterval(() => {
+                    if (revealedCount < totalLetters - 3) { // Reveal most letters
+                        letters[revealedCount].classList.remove('hidden');
+                        letters[revealedCount].style.color = '#2c3e50';
+                        revealedCount++;
+                    } else {
+                        clearInterval(revealInterval);
+
+                        // Start typing animation
+                        setTimeout(() => {
+                            inputEl.classList.add('typing');
+                            let typedLength = 0;
+                            const typeInterval = setInterval(() => {
+                                if (typedLength < wordData.typedText.length) {
+                                    inputEl.value = wordData.typedText.substring(0, typedLength + 1);
+                                    typedLength++;
+                                } else {
+                                    clearInterval(typeInterval);
+                                    inputEl.classList.remove('typing');
+
+                                    // Mark word as correct
+                                    setTimeout(() => {
+                                        wordEl.classList.add('revealed');
+                                        letters.forEach(letter => {
+                                            letter.classList.remove('hidden');
+                                            letter.style.color = '#155724';
+                                        });
+                                        inputEl.value = '';
+
+                                        // Move to next word after delay
+                                        setTimeout(() => {
+                                            currentWordIndex = (currentWordIndex + 1) % demoWords.length;
+                                            animateWord();
+                                        }, 1500);
+                                    }, 500);
+                                }
+                            }, 100);
+                        }, 500);
+                    }
+                }, 400);
+            }
+
+            animateWord();
+        }
+
         // Handle Enter key and initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             initGame();
@@ -2636,6 +2880,11 @@
                     checkWord();
                 }
             });
+
+            // Start demo animation on the start screen
+            if (document.getElementById('startScreen').style.display !== 'none') {
+                setTimeout(startDemoAnimation, 1000);
+            }
         });
     </script>
 
