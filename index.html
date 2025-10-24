@@ -19,30 +19,6 @@
             flex-direction: column;
         }
 
-        /* Header Styles */
-        .header {
-            background-color: #1abc9c;
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .logo {
-            font-size: 36px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .player-name {
-            font-size: 20px;
-            font-weight: 500;
-        }
-
         /* Game Info Bar */
         .game-info {
             background-color: #c8c8c8;
@@ -502,14 +478,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="logo">
-            Quill 🖊️
-        </div>
-        <div class="player-name" id="playerName">Player</div>
-    </div>
-
     <!-- Game Info Bar -->
     <div class="game-info hidden" id="gameInfo">
         <div class="word-section">
@@ -2061,11 +2029,6 @@
                     highScores = [];
                 }
             }
-
-            // Set player name
-            const animals = ['King Penguin', 'Lion', 'Eagle', 'Dolphin', 'Tiger', 'Wolf', 'Fox', 'Bear', 'Hawk', 'Shark'];
-            const playerName = animals[Math.floor(Math.random() * animals.length)] + ' (You)';
-            document.getElementById('playerName').textContent = playerName;
 
             document.getElementById('currentRoundDisplay').textContent = `Round ${currentRound}`;
             console.log(`Game initialized with ${gameData.length} words`);
