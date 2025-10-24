@@ -789,7 +789,7 @@
             <div class="input-section" id="inputSection">
                 <input type="text" class="word-input" id="wordInput" placeholder="Enter a synonym">
                 <button class="check-button" id="checkButton" onclick="checkWord()">Check Word</button>
-                <div class="hint-text">Press enter to clear</div>
+                <div class="hint-text">Words auto-match as you type • Press enter to clear</div>
             </div>
 
             <div class="input-section" id="nextRoundSection" style="display: none;">
@@ -2683,8 +2683,10 @@
                 }
             }
 
-            // Clear input
-            document.getElementById('wordInput').value = '';
+            // Clear input only if a word was found
+            if (found) {
+                document.getElementById('wordInput').value = '';
+            }
         }
 
         // Check if all words are guessed
@@ -2900,9 +2902,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             initGame();
 
-            document.getElementById('wordInput').addEventListener('keypress', (e) => {
+            const wordInput = document.getElementById('wordInput');
+
+            // Auto-match words as user types
+            wordInput.addEventListener('input', (e) => {
+                checkWord();
+            });
+
+            // Enter key clears the input
+            wordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    checkWord();
+                    wordInput.value = '';
                 }
             });
 
