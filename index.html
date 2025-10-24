@@ -354,7 +354,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 5px 20px rgba(26, 188, 156, 0.3);
-            margin-top: 20px;
+            margin: 20px 0 30px 0;
         }
 
         .start-button:hover {
@@ -741,6 +741,8 @@
             <h1>WordLike</h1>
             <h2>The Fast-Paced Vocabulary Game</h2>
 
+            <button class="start-button" onclick="startGame()">Start Game</button>
+
             <div class="how-to-play">
                 <h3>How to Play</h3>
                 <ol>
@@ -772,8 +774,6 @@
                     <input type="text" class="demo-input" id="demoInput" value="" readonly placeholder="Type synonym here...">
                 </div>
             </div>
-
-            <button class="start-button" onclick="startGame()">Start Game</button>
         </div>
 
         <!-- Game Screen -->
