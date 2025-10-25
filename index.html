@@ -2607,11 +2607,19 @@
 
         // Check word - Global function for onclick
         function checkWord() {
-            const input = document.getElementById('wordInput').value.trim().toLowerCase();
+            const inputElement = document.getElementById('wordInput');
+            if (!inputElement) {
+                console.error('wordInput element not found in checkWord');
+                return;
+            }
+
+            const input = inputElement.value.trim().toLowerCase();
             if (!input) return;
 
             // Normalize input (replace spaces with dashes)
             const normalized = input.replace(/\s+/g, '-');
+
+            console.log('Checking word:', normalized, 'against', currentSynonyms.length, 'synonyms');
 
             // Check against synonyms
             let found = false;
@@ -2620,6 +2628,7 @@
                 const synonymNormalized = synonym.word.toLowerCase().replace(/\s+/g, '-');
 
                 if (synonymNormalized === normalized && !synonym.revealed) {
+                    console.log('Match found!', synonym.word);
                     // Calculate points
                     const pointsEarned = synonym.word.length - synonym.toSwap;
                     synonym.points = pointsEarned;
@@ -2890,7 +2899,22 @@
         document.addEventListener('DOMContentLoaded', () => {
             initGame();
 
+            // Setup input handlers
+            setupInputHandlers();
+
+            // Start demo animation on the start screen
+            if (document.getElementById('startScreen').style.display !== 'none') {
+                setTimeout(startDemoAnimation, 1000);
+            }
+        });
+
+        // Setup input event handlers
+        function setupInputHandlers() {
             const wordInput = document.getElementById('wordInput');
+            if (!wordInput) {
+                console.error('wordInput element not found');
+                return;
+            }
 
             // Auto-match words as user types
             wordInput.addEventListener('input', (e) => {
@@ -2900,15 +2924,13 @@
             // Enter key clears the input
             wordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent form submission
                     wordInput.value = '';
                 }
             });
 
-            // Start demo animation on the start screen
-            if (document.getElementById('startScreen').style.display !== 'none') {
-                setTimeout(startDemoAnimation, 1000);
-            }
-        });
+            console.log('Input handlers attached successfully');
+        }
     </script>
 
     <!-- Score Modal -->
