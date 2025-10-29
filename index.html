@@ -2320,8 +2320,19 @@
                 }
             }
 
-            document.getElementById('currentRoundDisplay').textContent = `Round ${currentRound}`;
-            document.getElementById('highScoreDisplay').textContent = `High Score: ${highScore}`;
+            const roundDisplay = document.getElementById('roundNumber');
+            if (roundDisplay) {
+                roundDisplay.textContent = `Round ${currentRound}`;
+            } else {
+                console.warn('roundNumber element not found during initGame');
+            }
+
+            const highScoreDisplay = document.getElementById('highScoreDisplay');
+            if (highScoreDisplay) {
+                highScoreDisplay.textContent = `High Score: ${highScore}`;
+            } else {
+                console.warn('highScoreDisplay element not found during initGame');
+            }
             console.log(`Game initialized with ${gameData.length} words`);
         }
 
@@ -2605,19 +2616,35 @@
             // If we get here, no words can reveal (all done or all guessed)
         }
 
+        function normalizeGuess(guess) {
+            return guess
+                .toLowerCase()
+                .trim()
+                // Treat spaces, underscores, and hyphens as the same separator
+                .replace(/[\s_]+/g, '-')
+                // Remove punctuation except the separator we standardize on
+                .replace(/[^a-z0-9-]/g, '')
+                // Collapse multiple separators into one
+                .replace(/-+/g, '-')
+                // Remove non-alphanumeric characters at the edges (e.g., stray punctuation)
+                .replace(/^-+|-+$/g, '');
+        }
+
         // Check word - Global function for onclick
-        function checkWord() {
+        function checkWord(providedValue = null) {
             const inputElement = document.getElementById('wordInput');
             if (!inputElement) {
                 console.error('wordInput element not found in checkWord');
-                return;
+                return false;
             }
 
-            const input = inputElement.value.trim().toLowerCase();
-            if (!input) return;
+            const rawInput = providedValue !== null ? providedValue : inputElement.value;
+            const trimmedInput = rawInput.trim();
+            if (!trimmedInput) return false;
 
-            // Normalize input (replace spaces with dashes)
-            const normalized = input.replace(/\s+/g, '-');
+            // Normalize input to make comparisons forgiving
+            const normalized = normalizeGuess(trimmedInput);
+            if (!normalized) return false;
 
             console.log('Checking word:', normalized, 'against', currentSynonyms.length, 'synonyms');
 
@@ -2625,7 +2652,7 @@
             let found = false;
             for (let i = 0; i < currentSynonyms.length; i++) {
                 const synonym = currentSynonyms[i];
-                const synonymNormalized = synonym.word.toLowerCase().replace(/\s+/g, '-');
+                const synonymNormalized = normalizeGuess(synonym.word);
 
                 if (synonymNormalized === normalized && !synonym.revealed) {
                     console.log('Match found!', synonym.word);
@@ -2684,6 +2711,8 @@
             if (found) {
                 document.getElementById('wordInput').value = '';
             }
+
+            return found;
         }
 
         // Check if all words are guessed
@@ -2916,16 +2945,19 @@
                 return;
             }
 
-            // Auto-match words as user types
+            // Auto-match words as the player types
             wordInput.addEventListener('input', (e) => {
-                checkWord();
+                checkWord(e.target.value);
             });
 
-            // Enter key clears the input
-            wordInput.addEventListener('keypress', (e) => {
+            // Hitting Enter should attempt a match and then clear the guess box
+            wordInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault(); // Prevent form submission
-                    wordInput.value = '';
+                    const matched = checkWord(e.target.value);
+                    if (!matched) {
+                        wordInput.value = '';
+                    }
                 }
             });
 
