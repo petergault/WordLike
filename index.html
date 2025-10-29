@@ -2320,8 +2320,19 @@
                 }
             }
 
-            document.getElementById('currentRoundDisplay').textContent = `Round ${currentRound}`;
-            document.getElementById('highScoreDisplay').textContent = `High Score: ${highScore}`;
+            const roundDisplay = document.getElementById('roundNumber');
+            if (roundDisplay) {
+                roundDisplay.textContent = `Round ${currentRound}`;
+            } else {
+                console.warn('roundNumber element not found during initGame');
+            }
+
+            const highScoreDisplay = document.getElementById('highScoreDisplay');
+            if (highScoreDisplay) {
+                highScoreDisplay.textContent = `High Score: ${highScore}`;
+            } else {
+                console.warn('highScoreDisplay element not found during initGame');
+            }
             console.log(`Game initialized with ${gameData.length} words`);
         }
 
